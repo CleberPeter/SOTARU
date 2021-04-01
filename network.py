@@ -11,8 +11,8 @@ class Network:
 
         nodes = nodes_info.get()
 
-        #for node in nodes:
-        #    Node(node.name, node.port)
+        for node in nodes:
+        
 
 if __name__ == "__main__":
 
