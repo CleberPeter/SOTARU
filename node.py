@@ -12,5 +12,4 @@ if __name__ == "__main__":
 
     name = sys.argv[1]
     sever_port = int(sys.argv[2])
-
     node = Node(name, sever_port)

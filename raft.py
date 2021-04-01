@@ -24,8 +24,10 @@ class Raft:
         self.timer.start()
 
     def server_on_receive(self, client, data):
+        self.reinit_timer()
+
         msg = data.decode("utf-8")
-        print("NODE_" + self.name + ": server_on_receive, data: " + msg)
+        print("NODE_" + self.name + ": receive, data: " + msg)
 
         fields = msg.split(';')
         name = fields[1]
@@ -43,19 +45,17 @@ class Raft:
 
             msg = "vote;" + str(self.current_term) + status
             client.send(msg)
-            self.reinit_timer()
 
         elif fields[0] == "append_entries":
             if self.current_term <= term:
                 self.current_term = term
                 self.voted_for = name
                 self.sm = "FOLLOWER"
-                self.reinit_timer()
 
     def client_on_receive(self, server, data):
 
         msg = data.decode("utf-8")
-        print("NODE_" + self.name + ": client receive, data: " + msg)
+        print("NODE_" + self.name + ": receive, data: " + msg)
 
         fields = msg.split(';')
 
