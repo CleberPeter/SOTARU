@@ -24,4 +24,4 @@ Se logIndex for maior que o nextIndex de um seguidor, anexe todas as entradas de
 Todos esses cargos têm um tempo limite aleatório, ao decorrer do qual todos os cargos assumem que o líder caiu e se convertem em candidatos, desencadeando uma nova eleição e incrementando o mandato atual.
 
 
-Cada nodo vota em somente um candidato para um determinado term, o voto é dado ao primeiro candidato que o solicitou desde que seu lastindex esteja em conformidade com o do próprio nodo. 
+Cada nodo vota em somente um candidato para um determinado term, o voto é dado ao primeiro candidato que o solicitou desde que seu lastindex esteja em conformidade com o local, ou seja, um candidato não receberá o voto de um nodo que possui registros mais atualizados que o candidato.
