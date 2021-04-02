@@ -16,8 +16,8 @@ class Http_Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        print("GET request,\nPath: %s\nHeaders:\n%s\n",
-              str(self.path), str(self.headers))
+        #print("GET request,\nPath: %s\nHeaders:\n%s\n",
+              #str(self.path), str(self.headers))
         self._set_response()
         self.wfile.write("GET request for {}".format(
             self.path).encode('utf-8'))
@@ -35,7 +35,10 @@ class Http_Handler(BaseHTTPRequestHandler):
             keys.append(key)
             values.append(value)
 
-        self.on_receive(keys, values)
+        asnwer = self.on_receive(keys, values)
+        self._set_response()
+        self.wfile.write(asnwer.encode('utf-8'))
+
 
 
 class HttpServer:

@@ -49,7 +49,7 @@ class Raft:
 
         elif cmd == "append_entries":
 
-            if self.current_term <= term:
+            if term >= self.current_term:
                 self.current_term = term
                 self.voted_for = name
                 self.sm = "FOLLOWER"
