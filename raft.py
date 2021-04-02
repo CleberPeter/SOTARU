@@ -35,26 +35,18 @@ class Raft:
         term = int(fields[2])
 
         if cmd == "request_vote":
-            # TODO: check log index to
-            if self.voted_for == '' and term > self.current_term:
-
-                self.current_term = term
-                self.voted_for = name
-                self.sm = "FOLLOWER"
-                voted = True
+            if term > self.current_term:
+                if self.voted_for == '' or True: #TODO: or (check log index to)
+                    self.current_term = term
+                    self.voted_for = name
+                    self.sm = "FOLLOWER"
+                    voted = True
             else:
                 voted = False
 
-            self.send_vote(socket, voted)
+            self.send_request_votes_answer(socket, voted)
 
-        elif cmd == "append_entries":
-
-            if term >= self.current_term:
-                self.current_term = term
-                self.voted_for = name
-                self.sm = "FOLLOWER"
-
-        elif cmd == "vote":
+        elif cmd == "request_vote_answer":
 
             status_vote = fields[3]
             if status_vote == "true":
@@ -63,6 +55,18 @@ class Raft:
 
                 if self.votes > len(nodes)/2:
                     self.sm = "LEADER"
+
+        elif cmd == "append_entries":
+
+            if term >= self.current_term:
+                self.current_term = term
+                self.voted_for = name
+                self.sm = "FOLLOWER"
+                accept = True
+            else:
+                accept = False
+
+            self.send_append_entries_answer(socket, accept)
 
     def server_on_receive(self, client, data):
 
@@ -93,21 +97,22 @@ class Raft:
 
                 socket.send(msg)
 
-    def send_vote(self, socket, voted):
+    def send_request_votes(self):
+
+        # TODO: insert last_log_term_index and last_log_term
+        msg = "request_vote;" + self.name + ";" + str(self.current_term)
+        self.send_broadcast(msg)
+
+    def send_request_votes_answer(self, socket, voted):
 
         if voted:
             voted = ";true"
         else:
             voted = ";false"
 
-        msg = "vote;" + self.name + ";" + str(self.current_term) + voted
+        msg = "request_vote_answer;" + self.name + \
+            ";" + str(self.current_term) + voted
         socket.send(msg)
-
-    def send_request_votes(self):
-
-        # TODO: insert last_log_term_index and last_log_term
-        msg = "request_vote;" + self.name + ";" + str(self.current_term)
-        self.send_broadcast(msg)
 
     def send_append_entries(self):
 
@@ -115,25 +120,41 @@ class Raft:
         msg = "append_entries;" + self.name + ';' + str(self.current_term)
         self.send_broadcast(msg)
 
+    def send_append_entries_answer(self, socket, accept):
+
+        if accept:
+            accept = ";true"
+        else:
+            accept = ";false"
+
+        msg = "append_entries_answer;" + self.name + \
+            ";" + str(self.current_term) + accept
+        socket.send(msg)
+
     def timeout_handle(self):
         print("NODE_" + self.name + " raft task, sm: " + self.sm)
 
-        if self.sm == "FOLLOWER" or self.sm == "CANDIDATE":
+        if self.sm == "FOLLOWER":
 
-            self.sm = "PRE-CANDIDATE"
+            self.sm = "CANDIDATE"
             self.voted_for = ''
             timeout = randint(MIN_WAIT_TIME, MAX_WAIT_TIME)/1000
             self.reinit_timer(timeout)
 
-        elif self.sm == "PRE-CANDIDATE":
+        elif self.sm == "CANDIDATE":
 
-            self.sm = "CANDIDATE"
-            self.current_term += 1
-            self.voted_for = self.name
-            self.votes = 1
-            self.reinit_timer()
+            if self.voted_for == '':
+            
+                self.current_term += 1
+                self.voted_for = self.name
+                self.votes = 1
+                self.reinit_timer()
 
-            self.send_request_votes()
+                self.send_request_votes()
+            else:
+                # election end without me becoming leader
+                self.sm = "FOLLOWER"
+                self.timeout_handle()
 
         elif self.sm == "LEADER":
 
