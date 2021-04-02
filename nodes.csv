@@ -1,12 +1,4 @@
-A,localhost,5758
-B,localhost,5759
-C,localhost,5760
-D,localhost,5761
-E,localhost,5762
-F,localhost,5763
-G,localhost,5764
-H,localhost,5765
-I,localhost,5766
-J,localhost,5767
-K,localhost,5768
-L,localhost,5769
+name,host,tcp_server_port,http_server_port
+A,localhost,5758,8080
+B,localhost,5759,8081
+C,localhost,5760,8082

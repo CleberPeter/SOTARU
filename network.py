@@ -1,27 +1,20 @@
-from node import Node
-import nodes_info as nodes_info
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import os
-from threading import Thread
+def get_info():
+
+    nodes_info = []
+
+    with open('nodes.csv') as file:
+        for line in file:
+            (name, host, tcp_port, http_port) = line.split(',')
+            if name != "name": # ignore header
+                nodes_info.append(
+                    NodeInfo(name, host, int(tcp_port), int(http_port)))
+
+    return nodes_info
 
 
-class Network:
-
-    def __init__(self):
-        print('NETWORK: init')
-
-    def start(self):
-        nodes = nodes_info.get()
-
-        for node in nodes:
-            self.thread = Thread(target=self.init_node_process, args=([node, ]))
-            self.thread.start()
-
-    def init_node_process(self, node):
-        cmd = "python3 node.py " + node.name + " " + str(node.port)
-        os.system(cmd)
-
-if __name__ == "__main__":
-
-    network = Network()
-    network.start()
+class NodeInfo:
+    def __init__(self, name, host, tcp_port, http_port):
+        self.name = name
+        self.host = host
+        self.tcp_port = tcp_port
+        self.http_port = http_port
