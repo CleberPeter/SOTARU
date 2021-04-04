@@ -5,9 +5,9 @@ def get_info():
     with open('nodes.csv') as file:
         for line in file:
             (name, host, tcp_port, http_port) = line.split(',')
-            if name != "name": # ignore header
-                nodes_info.append(
-                    NodeInfo(name, host, int(tcp_port), int(http_port)))
+            if name != "name":  # ignore header
+                nodes_info.append(NodeInfo(name, host, int(
+                    tcp_port), int(http_port)))
 
     return nodes_info
 

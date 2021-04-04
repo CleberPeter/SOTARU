@@ -1,27 +1,34 @@
+import json
 from threading import Timer
 from random import randint
+import network
 from tcp_server import TcpServer
 from tcp_client import TcpClient
-import network
+from current_state_db import Current_State_DB
 
-MIN_WAIT_TIME = 100
-MAX_WAIT_TIME = 300
+# ms
+MIN_RANDOM_TIMEOUT = 100
+MAX_RANDOM_TIMEOUT = 300
+# s
+DEFAULT_TIMEOUT = 1
+HEARTBEAT_TIMEOUT = 0.5
 
 
 class Raft:
 
-    def __init__(self, name, tcp_sever_port):
+    def __init__(self, name, tcp_sever_port, force_leader=False):
 
         self.current_term = 0
         self.voted_for = ''
         self.votes = 0
         self.name = name
         self.sm = "FOLLOWER"
+        self.force_leader = force_leader
 
+        self.current_state_db = Current_State_DB(name)
         self.server = TcpServer(tcp_sever_port, self.server_on_receive)
 
-        timeout = 1
-        self.timer = Timer(timeout, self.timeout_handle, [])
+        self.timer = Timer(DEFAULT_TIMEOUT, self.timeout_handle, [])
         self.timer.start()
 
     def parser(self, socket, data):
@@ -69,6 +76,27 @@ class Raft:
 
             self.send_append_entries_answer(socket, accept)
 
+    def i_am_leader(self):
+        return self.sm == "LEADER"
+
+    def publish(self, typ, data):
+
+        if self.i_am_leader():
+            self.send_append_entries(json.dumps(data))
+            return (True, '')
+        else:
+            # For now only the leader can process the customer's messages.
+            # Subsequently, the other nodes acted as proxy's directing messages
+            # from customers to the leader.
+            return (False, 'proxy function not implemented yet. Leader is: ' + self.voted_for)
+
+        """
+        if typ == "add_author":
+            return self.current_state_db.insert_author(data)
+        else:
+            return (False, 'action not recognitzed.')
+        """
+
     def server_on_receive(self, client, data):
 
         self.reinit_timer()
@@ -111,15 +139,19 @@ class Raft:
         else:
             voted = ";false"
 
-        msg = "request_vote_answer;" + self.name + \
-            ";" + str(self.current_term) + voted
+        msg = "request_vote_answer;" + self.name + ";"
+        msg += str(self.current_term) + voted
         socket.send(msg)
 
-    def send_append_entries(self):
+    def send_append_entries(self, data):
 
-        # TODO: insert data
-        msg = "append_entries;" + self.name + ';' + str(self.current_term)
-        self.send_broadcast(msg)
+        if self.i_am_leader():
+            
+            msg = "append_entries;" + self.name + ';'
+            msg += str(self.current_term) + ';' + data
+            self.send_broadcast(msg)
+        else:
+            return False
 
     def send_append_entries_answer(self, socket, accept):
 
@@ -140,8 +172,11 @@ class Raft:
             self.voted_for = ''
             self.sm = "CANDIDATE"
 
-            timeout = randint(MIN_WAIT_TIME, MAX_WAIT_TIME)/1000
-            self.reinit_timer(timeout)
+            if self.force_leader:  # force to be a leader ?
+                self.timeout_handle()
+            else:
+                timeout = randint(MIN_RANDOM_TIMEOUT, MAX_RANDOM_TIMEOUT)/1000
+                self.reinit_timer(timeout)
 
         elif self.sm == "CANDIDATE":
 
@@ -160,6 +195,5 @@ class Raft:
 
         elif self.sm == "LEADER":
 
-            timeout = 0.5
-            self.reinit_timer(timeout)
-            self.send_append_entries()
+            self.reinit_timer(HEARTBEAT_TIMEOUT)
+            self.send_append_entries('')  # only heartbeat
