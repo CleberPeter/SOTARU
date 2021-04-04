@@ -9,8 +9,8 @@ The update files pointed to by the history are distributed by the nodes through 
 
 ### HTTP API
 
-Documentation for integration with the nodes is available at [HTTP_API](https://github.com/CleberPeter/dOTA/blob/main/api.md). 
+Documentation for integration with the nodes is available at [HTTP_API](https://github.com/CleberPeter/dOTA/blob/main/docs/api.md). 
 
 ### Blockchain Blocks
 
-The structure employed for each of the blockchain blocks is available at [Blockchain_blocks](https://github.com/CleberPeter/dOTA/blob/main/blockchain_blocks.md).
+The structure employed for each of the blockchain blocks is available at [Blockchain_blocks](https://github.com/CleberPeter/dOTA/blob/main/docs/blockchain_blocks.md).
