@@ -1,6 +1,6 @@
 # API
 
-Used for interaction with nodes.
+This section describes the HTTP API for interaction with nodes.
 
 ## Kill
 Only kill node process.
