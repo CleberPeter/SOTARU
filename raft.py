@@ -36,7 +36,8 @@ class Raft:
 
         if cmd == "request_vote":
             if term > self.current_term:
-                if self.voted_for == '' or True: #TODO: or (check log index to)
+                # TODO: or (check log index to)
+                if self.voted_for == '' or True:
                     self.current_term = term
                     self.voted_for = name
                     self.sm = "FOLLOWER"
@@ -136,20 +137,21 @@ class Raft:
 
         if self.sm == "FOLLOWER":
 
-            self.sm = "CANDIDATE"
             self.voted_for = ''
+            self.sm = "CANDIDATE"
+
             timeout = randint(MIN_WAIT_TIME, MAX_WAIT_TIME)/1000
             self.reinit_timer(timeout)
 
         elif self.sm == "CANDIDATE":
 
             if self.voted_for == '':
-            
+
                 self.current_term += 1
                 self.voted_for = self.name
                 self.votes = 1
-                self.reinit_timer()
 
+                self.reinit_timer()
                 self.send_request_votes()
             else:
                 # election end without me becoming leader
