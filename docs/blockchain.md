@@ -1,4 +1,8 @@
-# add_node
+# Blockchain
+
+This section describes the types and structure of each of the blockchain blocks.
+
+### Add Node
 	header
 		size:                1024
 		type:                "add_node"
@@ -9,7 +13,7 @@
 		tcp_port:  5057
 		http_port: 8080
 		
-# add_author
+### Add Author
 	header
 		size:                1024
 		type:                "add_author"

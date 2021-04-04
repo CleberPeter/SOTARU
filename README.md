@@ -7,10 +7,10 @@ The update history is stored on all nodes through a Blockchain whose consensus p
 
 The update files pointed to by the history are distributed by the nodes through a distributed hash table (DHT) with the [Kademlia](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf) algorithm.
 
-### HTTP API
+### API
 
-Documentation for integration with the nodes is available at [HTTP_API](https://github.com/CleberPeter/dOTA/blob/main/docs/api.md). 
+Documentation for integration with the nodes is available at [API](https://github.com/CleberPeter/dOTA/blob/main/docs/api.md). 
 
-### Blockchain Blocks
+### Blockchain
 
-The structure employed for each of the blockchain blocks is available at [Blockchain_blocks](https://github.com/CleberPeter/dOTA/blob/main/docs/blockchain_blocks.md).
+The structure employed for each of the blockchain blocks is available at [Blockchain](https://github.com/CleberPeter/dOTA/blob/main/docs/blockchain_blocks.md).
