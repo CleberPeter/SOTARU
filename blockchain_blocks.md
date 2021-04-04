@@ -1,8 +1,8 @@
 # add_node
 	header
-		size: 				 1024
-		type: 				 "add_node"
-		name:       		 "A"
+		size:                1024
+		type:                "add_node"
+		name:                "A"
 		hash_previous_block: "f4f14079719f404b8556018069d3c81eebfee64f00c59b85813101eacc367a96"
 	body
 		host:      "localhost"
@@ -11,9 +11,9 @@
 		
 # add_author
 	header
-		size: 				 1024
-		type: 				 "add_author"
-		name:       		 "G3PD"
+		size:                1024
+		type:                "add_author"
+		name:                "G3PD"
 		hash_previous_block: "f4f14079719f404b8556018069d3c81eebfee64f00c59b85813101eacc367a96"
 	body
 		email:      "admin@g3pd.com.br"
