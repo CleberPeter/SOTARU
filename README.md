@@ -29,13 +29,14 @@ Fault-tolerant consensus protocol in which all nodes run the same state machine.
 * An election can end without a winner, in this case the candidates and the other nodes again wait for a random time and a new election is initiated.
 * When a candidate or leader receives a message with a term higher than your, he becomes a follower.
 * The leader, in the case of network idleness, sends heartbeats to the other nodes in order to prevent unnecessary elections.
+* The leader, when elected, initializes each follower's nextIndex with his lastLogIndex + 1.
 
 #### Replication
 
 * The leader when receiving an entry from the client attached to his local log and initiates the process of replicating this entry in the followers. The log is considered committed (commitIndex) when more than half of the nodes in the network confirm its replication. Followers understand that a log has been committed when the leader announces the last index committed to their RPC's. The client obtains the result of the entry only when it is committed by leader.
 * Followers reject leader entries with a lower mandate (term) number than practiced.
 * It is stored by the leader, for each follower, the index of the next log (nextIndex) to be sent and the index of the last log replicated by the follower (matchIndex).
-* If the follower finds that the immediately previous log (prevLogIndex and prevLogTerm) does not match its local log it will refuse the entries. In this case the leader will reduce the index of the entry sent to the follower until he accepts the entries, that is, until the last entry accepted by the follower is discovered. An alternative that can be used to speed up this process is the follower when refusing the entries inform the leader the index of the last entry present in his log.
+* If the follower finds that the immediately previous log (prevLogIndex and prevLogTerm) sent by the leader does not match its local log it will refuse the entries. In this case the leader will reduce the nextIndex until he accepts the entries, that is, until the last entry accepted by the follower is discovered. An alternative that can be used to speed up this process is the follower when refusing the entries inform the leader the index of the last entry present in his log.
 * All entries that are not yet in the log are added by the followers, but if an inconsistency is detected in the new entries (same index, but for different mandates), the follower deletes the entries from this index onwards and assumes the entries of the current leader.
 * If the leader's commit index (leaderCommitIndex) is higher than follower (commitIndex) the follower new commitIndex will be equal to min (leaderCommitIndex, index of the new entry) 
 
