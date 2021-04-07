@@ -14,8 +14,19 @@ DEFAULT_TIMEOUT = 1
 HEARTBEAT_TIMEOUT = 0.5
 
 
-class Raft:
+class Follower:
+    def __init__(self, name, next_index_entry=0):
+        self.name = name
+        self.next_index_entry = next_index_entry
 
+
+class Log:
+    def __init__(self, data, term):
+        self.data = data
+        self.term = term
+
+
+class Raft:
     def __init__(self, name, tcp_sever_port, force_leader=False):
 
         self.current_term = 0
@@ -24,6 +35,13 @@ class Raft:
         self.name = name
         self.sm = "FOLLOWER"
         self.force_leader = force_leader
+
+        self.logs = []
+        self.commits = []  # TODO: to implement
+        self.followers = []
+
+        # TODO: became followers list dynamic
+        self.update_followers_list()
 
         self.current_state_db = Current_State_DB(name)
         self.server = TcpServer(tcp_sever_port, self.server_on_receive)
@@ -38,15 +56,15 @@ class Raft:
 
         fields = msg.split(';')
         cmd = fields[0]
-        name = fields[1]
-        term = int(fields[2])
+        leader_name = fields[1]
+        leader_term = int(fields[2])
 
         if cmd == "request_vote":
-            if term > self.current_term:
+            if leader_term > self.current_term:
                 # TODO: or (check log index to)
                 if self.voted_for == '' or True:
-                    self.current_term = term
-                    self.voted_for = name
+                    self.current_term = leader_term
+                    self.voted_for = leader_name
                     self.sm = "FOLLOWER"
                     voted = True
             else:
@@ -59,22 +77,44 @@ class Raft:
             status_vote = fields[3]
             if status_vote == "true":
                 self.votes += 1
-                nodes = network.get_info()
+                nodes = network.get()
 
                 if self.votes > len(nodes)/2:
                     self.sm = "LEADER"
 
         elif cmd == "append_entries":
 
-            if term >= self.current_term:
-                self.current_term = term
-                self.voted_for = name
+            leader_prev_log_index = int(fields[3])
+            leader_prev_log_term = int(fields[4])
+            data = fields[5]
+
+            if len(self.logs) > 0:
+                prev_log_term = self.logs[leader_prev_log_index].term
+            else:
+                prev_log_term = 0
+            
+            if leader_term >= self.current_term and leader_prev_log_term == prev_log_term:
+                if data != '':
+                    self.logs.append(Log(data, leader_term))
+                
+                self.current_term = leader_term
+                self.voted_for = leader_name
                 self.sm = "FOLLOWER"
+
                 accept = True
             else:
                 accept = False
 
             self.send_append_entries_answer(socket, accept)
+        
+        elif cmd == "append_entries_answer":
+            next_log_index = int(fields[3])
+            accept = fields[4]
+
+            if accept == "true":
+                for follower in self.followers:
+                    if follower.name == self.name:
+                        follower.next_log_index = next_log_index
 
     def i_am_leader(self):
         return self.sm == "LEADER"
@@ -114,8 +154,8 @@ class Raft:
         self.timer.start()
 
     def send_broadcast(self, msg):
+        nodes = network.get()
 
-        nodes = network.get_info()
         for node in nodes:
             if node.name != self.name:  # do not send to myself
                 try:
@@ -127,7 +167,6 @@ class Raft:
                 socket.send(msg)
 
     def send_request_votes(self):
-
         # TODO: insert last_log_term_index and last_log_term
         msg = "request_vote;" + self.name + ";" + str(self.current_term)
         self.send_broadcast(msg)
@@ -146,10 +185,25 @@ class Raft:
     def send_append_entries(self, data):
 
         if self.i_am_leader():
-            
+
+            prev_log_index = len(self.logs)
+
+            if prev_log_index > 0:
+                prev_log_index -= 1
+                prev_log_term = self.logs[prev_log_index].term
+            else:
+                prev_log_term = 0
+
+            if data != '':  # is not heartbeat ?
+                log = Log(data, self.current_term)
+                self.logs.append(log)
+
             msg = "append_entries;" + self.name + ';'
-            msg += str(self.current_term) + ';' + data
+            msg += str(self.current_term) + ';' + str(prev_log_index) + ';'
+            msg += str(prev_log_term) + ';' + data  # TODO: insert commit index
             self.send_broadcast(msg)
+            
+            return True
         else:
             return False
 
@@ -160,9 +214,21 @@ class Raft:
         else:
             accept = ";false"
 
-        msg = "append_entries_answer;" + self.name + \
-            ";" + str(self.current_term) + accept
+        next_log_index = len(self.logs)
+
+        msg = "append_entries_answer;" + self.name + ';'
+        msg += str(self.current_term) + ';' + str(next_log_index)
+        msg += accept
         socket.send(msg)
+
+    def update_followers_list(self):
+        # TODO: make followers list dynamic
+        self.followers = []
+        nodes = network.get()
+        for node in nodes:
+            if node.name != self.name:  # i'm leader
+                self.followers.append(Follower(node.name))
+
 
     def timeout_handle(self):
         print("NODE_" + self.name + " raft task, sm: " + self.sm)
@@ -189,11 +255,11 @@ class Raft:
                 self.reinit_timer()
                 self.send_request_votes()
             else:
-                # election end without me becoming leader
+                # election end without me becoming leader ? -> new election!
                 self.sm = "FOLLOWER"
                 self.timeout_handle()
 
         elif self.sm == "LEADER":
 
             self.reinit_timer(HEARTBEAT_TIMEOUT)
-            self.send_append_entries('')  # only heartbeat
+            self.send_append_entries('')  # empty data -> heartbeat

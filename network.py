@@ -1,15 +1,15 @@
-def get_info():
+def get():
 
-    nodes_info = []
+    nodes = []
 
     with open('nodes.csv') as file:
         for line in file:
             (name, host, tcp_port, http_port) = line.split(',')
             if name != "name":  # ignore header
-                nodes_info.append(NodeInfo(name, host, int(
+                nodes.append(NodeInfo(name, host, int(
                     tcp_port), int(http_port)))
 
-    return nodes_info
+    return nodes
 
 
 class NodeInfo:

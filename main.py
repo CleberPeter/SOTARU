@@ -15,7 +15,7 @@ def init_node_process(node):
 
 if __name__ == "__main__":
 
-    nodes = network.get_info()
+    nodes = network.get()
 
     for node in nodes:
         thread = Thread(target=init_node_process, args=([node, ]))
