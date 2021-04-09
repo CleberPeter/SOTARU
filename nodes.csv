@@ -1,3 +1,4 @@
 name,host,tcp_server_port,http_server_port
 A,localhost,5758,8080
 B,localhost,5759,8081
+C,localhost,5760,8082

@@ -63,10 +63,13 @@ class Raft:
 
         fields = msg.split(';')
         cmd = fields[0]
-        leader_name = fields[1]
-        leader_term = int(fields[2])
+        node_name = fields[1]
+        node_term = int(fields[2])
 
         if cmd == "request_vote":
+            leader_term = node_term
+            leader_name = node_name
+
             if leader_term > self.current_term:
                 # TODO: or (check log index to)
                 if self.voted_for == '' or True:
@@ -90,12 +93,23 @@ class Raft:
                     self.sm = "LEADER"
 
                     leader_next_index = len(self.logs)
+
+                    # this differs from the raft's original proposal, in
+                    # which, the authors suggest that, after election, the
+                    # next_index of the followers should be initialized with
+                    # the same value as the leader. Creating this difference
+                    # makes the leader when elected to check on network if
+                    # there are followers out of date in relation to his log.
                     followers_next_index = leader_next_index - 1
+
                     self.update_followers_next_index(followers_next_index)
 
         elif cmd == "append_entries":
-            
+            leader_term = node_term
+            leader_name = node_name
+
             accept = False
+            next_index = len(self.logs)
 
             if leader_term >= self.current_term:
                 leader_prev_index = int(fields[3])
@@ -111,7 +125,7 @@ class Raft:
 
                     if not self.is_heartbeat(data):
                         leader_index = leader_prev_index + 1
-                        index = len(self.logs) - 1
+                        index = next_index - 1
 
                         # already have an log in this position ?
                         if index >= leader_index:
@@ -137,16 +151,21 @@ class Raft:
             self.send_append_entries_answer(socket, accept)
 
         elif cmd == "append_entries_answer":
-            print('')
-            """
-            next_log_index = int(fields[3])
-            accept = fields[4]
 
-            if accept == "true":
-                for follower in self.followers:
-                    if follower.info.name == self.name:
-                        follower.next_log_index = next_log_index
-            """
+            accept = fields[3]
+            leader_next_index = len(self.logs)
+            follower = self.find_follower(node_name)
+
+            if accept == "True":
+                if leader_next_index > follower.next_index:
+                    follower.next_index += 1
+            elif accept == "False" and follower.next_index > 0:
+                follower.next_index -= 1
+
+    def find_follower(self, name):
+        for follower in self.followers:
+            if follower.info.name == name:
+                return follower
 
     def i_am_leader(self):
         return self.sm == "LEADER"
@@ -224,20 +243,17 @@ class Raft:
 
             leader_next_index = len(self.logs)
             leader_term = self.current_term
+            original_data = data
 
             for follower in self.followers:
-                """
-                print('')
-                print('follower.next_index: ', follower.next_index)
-                print('leader_next_index: ', leader_next_index)
-                print('')
-                """
+                
                 # follower have delayed logs?
                 if follower.next_index != leader_next_index:
                     data = self.logs[follower.next_index].data
                     data_term = self.logs[follower.next_index].term
                     prev_index = follower.next_index - 1
                 else:
+                    data = original_data
                     data_term = leader_term
                     prev_index = leader_next_index - 1
 
@@ -262,16 +278,8 @@ class Raft:
 
     def send_append_entries_answer(self, socket, accept):
 
-        if accept:
-            accept = ";true"
-        else:
-            accept = ";false"
-
-        next_log_index = len(self.logs)
-
         msg = "append_entries_answer;" + self.name + ';'
-        msg += str(self.current_term) + ';' + str(next_log_index)
-        msg += accept
+        msg += str(self.current_term) + ';' + str(accept)
         socket.send(msg)
 
     def update_followers_next_index(self, index):
