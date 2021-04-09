@@ -40,15 +40,10 @@ class Node:
         os.system(cmd)
 
     def suspend(self, time):
-
-        print("NODE_" + name + ": suspend")
-
-        pid = str(os.getpid())
-        cmd = "kill -STOP " + pid
-        cmd += "; sleep " + time + ";"
-        cmd += "kill -CONT " + pid
-
-        os.system(cmd)
+        
+        self.raft.suspend()
+        sleep(int(time))
+        self.raft.resume()
 
     def add_author(self, author_data_json, answer):
 

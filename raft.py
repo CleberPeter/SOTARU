@@ -36,6 +36,7 @@ class Raft:
         self.name = name
         self.sm = "FOLLOWER"
         self.force_leader = force_leader
+        self.suspended = False
 
         self.logs = []
         self.commit_index = 0  # TODO: to implement
@@ -148,7 +149,14 @@ class Raft:
 
                     accept = True
 
-            self.send_append_entries_answer(socket, accept)
+                self.send_append_entries_answer(socket, accept)
+            else:
+                self.send_append_entries_answer(socket, accept)
+                # i must be the leader, my term is longer than that 
+                # of the current leader.
+                self.timeout_handle()
+
+            
 
         elif cmd == "append_entries_answer":
 
@@ -187,16 +195,28 @@ class Raft:
         else:
             return (False, 'action not recognitzed.')
         """
+    
+    def suspend(self):
+        print("NODE_" + self.name + ": suspend")
+
+        self.timer.cancel()
+        self.suspended = True
+    
+    def resume(self):
+        print("NODE_" + self.name + ": resume")
+
+        self.suspended = False
+        self.reinit_timer()
 
     def server_on_receive(self, client, data):
-
-        self.reinit_timer()
-        self.parser(client, data)
+        if not self.suspended:
+            self.reinit_timer()
+            self.parser(client, data)
 
     def client_on_receive(self, server, data):
-
-        self.parser(server, data)
-        server.close()
+        if not self.suspended:
+            self.parser(server, data)
+            server.close()
 
     def reinit_timer(self, time=1):
 
@@ -215,7 +235,7 @@ class Raft:
                 except Exception:  # fail to connect
                     continue
 
-                socket.send(msg)
+                self.send(socket, msg)
 
     def send_request_votes(self):
         # TODO: insert last_log_term_index and last_log_term
@@ -231,7 +251,7 @@ class Raft:
 
         msg = "request_vote_answer;" + self.name + ";"
         msg += str(self.current_term) + voted
-        socket.send(msg)
+        self.send(socket, msg)
 
     def send_append_entries(self, data):
 
@@ -270,17 +290,21 @@ class Raft:
                 except Exception:  # fail to connect
                     continue
 
-                socket.send(msg)
+                self.send(socket, msg)
 
             return True
         else:
             return False
 
+    def send(self, socket, msg):
+        if not self.suspended:
+            socket.send(msg)
+
     def send_append_entries_answer(self, socket, accept):
 
         msg = "append_entries_answer;" + self.name + ';'
         msg += str(self.current_term) + ';' + str(accept)
-        socket.send(msg)
+        self.send(socket, msg)
 
     def update_followers_next_index(self, index):
         for follower in self.followers:
