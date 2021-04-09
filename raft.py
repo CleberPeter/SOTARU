@@ -15,15 +15,16 @@ HEARTBEAT_TIMEOUT = 0.5
 
 
 class Follower:
-    def __init__(self, name, next_index_entry=0):
-        self.name = name
-        self.next_index_entry = next_index_entry
+    def __init__(self, info, next_index=0):
+        self.info = info
+        self.next_index = next_index
 
 
 class Log:
-    def __init__(self, data, term):
+    def __init__(self, data, term, acks=0):
         self.data = data
         self.term = term
+        self.acks = acks
 
 
 class Raft:
@@ -37,8 +38,11 @@ class Raft:
         self.force_leader = force_leader
 
         self.logs = []
-        self.commits = []  # TODO: to implement
+        self.commit_index = 0  # TODO: to implement
         self.followers = []
+
+        self.logs.append(Log('genesis_block', 0))
+        self.logs.append(Log('boundary_condition', 0))
 
         # TODO: became followers list dynamic
         self.update_followers_list()
@@ -48,6 +52,9 @@ class Raft:
 
         self.timer = Timer(DEFAULT_TIMEOUT, self.timeout_handle, [])
         self.timer.start()
+
+    def is_heartbeat(self, data):
+        return data == ''
 
     def parser(self, socket, data):
 
@@ -82,39 +89,64 @@ class Raft:
                 if self.votes > len(nodes)/2:
                     self.sm = "LEADER"
 
+                    leader_next_index = len(self.logs)
+                    followers_next_index = leader_next_index - 1
+                    self.update_followers_next_index(followers_next_index)
+
         elif cmd == "append_entries":
-
-            leader_prev_log_index = int(fields[3])
-            leader_prev_log_term = int(fields[4])
-            data = fields[5]
-
-            if len(self.logs) > 0:
-                prev_log_term = self.logs[leader_prev_log_index].term
-            else:
-                prev_log_term = 0
             
-            if leader_term >= self.current_term and leader_prev_log_term == prev_log_term:
-                if data != '':
-                    self.logs.append(Log(data, leader_term))
-                
-                self.current_term = leader_term
-                self.voted_for = leader_name
-                self.sm = "FOLLOWER"
+            accept = False
 
-                accept = True
-            else:
-                accept = False
+            if leader_term >= self.current_term:
+                leader_prev_index = int(fields[3])
+                leader_prev_term = int(fields[4])
+
+                prev_term = self.logs[leader_prev_index].term
+
+                # my log is consistent with leader ?
+                # the previous log has to have same term of leader.
+                if leader_prev_term == prev_term:
+                    data = fields[5]
+                    data_term = int(fields[6])
+
+                    if not self.is_heartbeat(data):
+                        leader_index = leader_prev_index + 1
+                        index = len(self.logs) - 1
+
+                        # already have an log in this position ?
+                        if index >= leader_index:
+                            term = self.logs[index].term
+
+                            # this log is from another leader ?
+                            if term != leader_term:
+
+                                # delete all logs from now on
+                                del self.logs[index:]
+                                self.logs.append(Log(data, data_term))
+
+                            # else: ignores the log, already added!
+                        else:
+                            self.logs.append(Log(data, data_term))
+
+                    self.current_term = leader_term
+                    self.voted_for = leader_name
+                    self.sm = "FOLLOWER"
+
+                    accept = True
 
             self.send_append_entries_answer(socket, accept)
-        
+
         elif cmd == "append_entries_answer":
+            print('')
+            """
             next_log_index = int(fields[3])
             accept = fields[4]
 
             if accept == "true":
                 for follower in self.followers:
-                    if follower.name == self.name:
+                    if follower.info.name == self.name:
                         follower.next_log_index = next_log_index
+            """
 
     def i_am_leader(self):
         return self.sm == "LEADER"
@@ -186,23 +218,44 @@ class Raft:
 
         if self.i_am_leader():
 
-            prev_log_index = len(self.logs)
-
-            if prev_log_index > 0:
-                prev_log_index -= 1
-                prev_log_term = self.logs[prev_log_index].term
-            else:
-                prev_log_term = 0
-
-            if data != '':  # is not heartbeat ?
+            if not self.is_heartbeat(data):
                 log = Log(data, self.current_term)
                 self.logs.append(log)
 
-            msg = "append_entries;" + self.name + ';'
-            msg += str(self.current_term) + ';' + str(prev_log_index) + ';'
-            msg += str(prev_log_term) + ';' + data  # TODO: insert commit index
-            self.send_broadcast(msg)
-            
+            leader_next_index = len(self.logs)
+            leader_term = self.current_term
+
+            for follower in self.followers:
+                """
+                print('')
+                print('follower.next_index: ', follower.next_index)
+                print('leader_next_index: ', leader_next_index)
+                print('')
+                """
+                # follower have delayed logs?
+                if follower.next_index != leader_next_index:
+                    data = self.logs[follower.next_index].data
+                    data_term = self.logs[follower.next_index].term
+                    prev_index = follower.next_index - 1
+                else:
+                    data_term = leader_term
+                    prev_index = leader_next_index - 1
+
+                prev_term = self.logs[prev_index].term
+
+                msg = "append_entries;" + self.name + ';'
+                msg += str(leader_term) + ';' + str(prev_index) + ';'
+                msg += str(prev_term) + ';' + data + ';'
+                msg += str(data_term)  # TODO: add commit index
+
+                try:
+                    socket = TcpClient(
+                        follower.info.host, follower.info.tcp_port, self.client_on_receive)
+                except Exception:  # fail to connect
+                    continue
+
+                socket.send(msg)
+
             return True
         else:
             return False
@@ -221,14 +274,17 @@ class Raft:
         msg += accept
         socket.send(msg)
 
+    def update_followers_next_index(self, index):
+        for follower in self.followers:
+            follower.next_index = index
+
     def update_followers_list(self):
         # TODO: make followers list dynamic
         self.followers = []
         nodes = network.get()
         for node in nodes:
             if node.name != self.name:  # i'm leader
-                self.followers.append(Follower(node.name))
-
+                self.followers.append(Follower(node))
 
     def timeout_handle(self):
         print("NODE_" + self.name + " raft task, sm: " + self.sm)
