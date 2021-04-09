@@ -40,10 +40,12 @@ class Node:
         os.system(cmd)
 
     def suspend(self, time):
-        
+
         self.raft.suspend()
         sleep(int(time))
         self.raft.resume()
+
+    # TODO: implement unidirectional failures
 
     def add_author(self, author_data_json, answer):
 
