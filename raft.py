@@ -320,7 +320,7 @@ class Raft:
 
     def timeout_handle(self):
         print("NODE_" + self.name + " raft task, sm: " + self.sm)
-
+        
         if self.sm == "FOLLOWER":
 
             self.voted_for = ''
@@ -344,6 +344,9 @@ class Raft:
                 self.send_request_votes()
             else:
                 # election end without me becoming leader ? -> new election!
+                # TODO: check if after a splitted election the term 
+                # has to be incremented again for new election.
+        
                 self.sm = "FOLLOWER"
                 self.timeout_handle()
 
