@@ -1,10 +1,13 @@
+import os
 import json
 from threading import Timer
 from random import randint
-import network
-from tcp_server import TcpServer
-from tcp_client import TcpClient
-from current_state_db import Current_State_DB
+from typing import List
+from network import Network, NodeInfo
+from tcp_server import Tcp_Server
+from tcp_client import Tcp_Client
+from tcp_logger import Tcp_Logger
+# from current_state_db import Current_State_DB
 
 # ms
 MIN_RANDOM_TIMEOUT = 100
@@ -13,12 +16,10 @@ MAX_RANDOM_TIMEOUT = 300
 DEFAULT_TIMEOUT = 1
 HEARTBEAT_TIMEOUT = 0.5
 
-
 class Follower:
     def __init__(self, info, next_index=0):
         self.info = info
         self.next_index = next_index
-
 
 class Log:
     def __init__(self, data, term, acks=0):
@@ -26,20 +27,20 @@ class Log:
         self.term = term
         self.acks = acks
 
-
 class Raft:
-    def __init__(self, name, tcp_sever_port, force_leader=False):
+    def __init__(self, name, tcp_sever_port, tcp_logger : Tcp_Logger, force_leader=False):
 
         self.current_term = 0
         self.voted_for = ''
         self.votes = 0
         self.name = name
         self.sm = "FOLLOWER"
+        self.tcp_logger = tcp_logger
         self.force_leader = force_leader
         self.suspended = False
 
         self.logs = []
-        self.commit_index = 0  # TODO: to implement
+        self.commit_index = 0  # TODO: maybe persistent ?
         self.followers = []
 
         self.logs.append(Log('genesis_block', 0))
@@ -48,8 +49,8 @@ class Raft:
         # TODO: became followers list dynamic
         self.update_followers_list()
 
-        self.current_state_db = Current_State_DB(name)
-        self.server = TcpServer(tcp_sever_port, self.server_on_receive)
+        # self.current_state_db = Current_State_DB(name)
+        self.server = Tcp_Server(tcp_sever_port, self.server_on_receive)
 
         self.timer = Timer(DEFAULT_TIMEOUT, self.timeout_handle, [])
         self.timer.start()
@@ -60,7 +61,7 @@ class Raft:
     def parser(self, socket, data):
 
         msg = data.decode("utf-8")
-        print("NODE_" + self.name + ": receive, data: " + msg)
+        self.tcp_logger.save('[RECEIVED] - ' + msg)
 
         fields = msg.split(';')
         cmd = fields[0]
@@ -88,7 +89,7 @@ class Raft:
             status_vote = fields[3]
             if status_vote == "true":
                 self.votes += 1
-                nodes = network.get()
+                nodes : List[NodeInfo] = Network.get_nodes()
 
                 if self.votes > len(nodes)/2:
                     self.sm = "LEADER"
@@ -156,8 +157,6 @@ class Raft:
                 # of the current leader.
                 self.timeout_handle()
 
-            
-
         elif cmd == "append_entries_answer":
 
             accept = fields[3]
@@ -197,14 +196,14 @@ class Raft:
         """
     
     def suspend(self):
-        print("NODE_" + self.name + ": suspend")
 
+        self.tcp_logger.save('[SUSPEND]')
         self.timer.cancel()
         self.suspended = True
     
     def resume(self):
-        print("NODE_" + self.name + ": resume")
 
+        self.tcp_logger.save('[RESUME]')
         self.suspended = False
         self.reinit_timer()
 
@@ -225,16 +224,15 @@ class Raft:
         self.timer.start()
 
     def send_broadcast(self, msg):
-        nodes = network.get()
-
+        
+        nodes : List[NodeInfo] = Network.get_nodes()
         for node in nodes:
             if node.name != self.name:  # do not send to myself
                 try:
-                    socket = TcpClient(
-                        node.host, node.tcp_port, self.client_on_receive)
-                except Exception:  # fail to connect
+                    socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
+                except Exception as e:  # fail to connect
+                    self.tcp_logger.save('[FAIL_CONNECT] - ' + str(e))
                     continue
-
                 self.send(socket, msg)
 
     def send_request_votes(self):
@@ -285,8 +283,7 @@ class Raft:
                 msg += str(data_term)  # TODO: add commit index
 
                 try:
-                    socket = TcpClient(
-                        follower.info.host, follower.info.tcp_port, self.client_on_receive)
+                    socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
                 except Exception:  # fail to connect
                     continue
 
@@ -313,14 +310,14 @@ class Raft:
     def update_followers_list(self):
         # TODO: make followers list dynamic
         self.followers = []
-        nodes = network.get()
+        nodes : List[NodeInfo] = Network.get_nodes()
         for node in nodes:
-            if node.name != self.name:  # i'm leader
+            if node.name != self.name:
                 self.followers.append(Follower(node))
 
     def timeout_handle(self):
-        print("NODE_" + self.name + " raft task, sm: " + self.sm)
-        
+
+        self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
         if self.sm == "FOLLOWER":
 
             self.voted_for = ''

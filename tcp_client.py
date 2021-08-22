@@ -2,7 +2,7 @@ import socket
 from threading import Thread
 
 
-class TcpClient:
+class Tcp_Client:
 
     def __init__(self, host, port, on_receive):
 
@@ -38,8 +38,9 @@ class TcpClient:
                         break
                 except Exception:  # connection closed
                     return 0
-
-            self.on_receive(self, b''.join(chunks))
+            
+            if self.on_receive:
+                self.on_receive(self, b''.join(chunks))
 
     def send(self, data):
 
