@@ -48,6 +48,7 @@ class Time_Graph:
                 bl = patch.get_xy()
                 x = 0.5*patch.get_width() + bl[0]
                 y = 0.5*patch.get_height() + bl[1]
+                # ax.arrow(x, y, 0, -1)
                 ax.text(x, y, event.type.name, ha='center',va='center', color='white')
                 
         ax.set_xlabel('miliseconds')
