@@ -1,3 +1,9 @@
+# Start
+
+sudo core-daemon
+
+sudo core-gui
+
 # Connect with Host
 
 Under the Session Menu, the Options… dialog has an option to set a control network prefix.
@@ -6,7 +12,8 @@ This can be set to a network prefix such as 172.16.0.0/24. A bridge will be crea
 
 ## Set Default
 
-uncomment configuration line on /etc/core/core.conf and restart core-daemon
+uncomment configuration line on /etc/core/core.conf and restart core-daemon. 
+* Network .xml file can overwrite this config, so configure .xml file to. 
 
 ## Node -> Host
 
@@ -19,8 +26,12 @@ ping 172.16.0.2
 # Uninstall
 
 cd <CORE_REPO>
+
 sudo make uninstall
+
 make clean
+
 ./bootstrap.sh clean
+
 sudo inv uninstall
 
