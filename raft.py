@@ -229,9 +229,10 @@ class Raft:
         for node in nodes:
             if node.name != self.name:  # do not send to myself
                 try:
+                    self.tcp_logger.save('[TRY_CONNECT] - ' + node.host)
                     socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
                 except Exception as e:  # fail to connect
-                    self.tcp_logger.save('[FAIL_CONNECT] - ' + str(e))
+                    self.tcp_logger.save('[FAIL_CONNECT] - ' + node.host + ' ' + str(e))
                     continue
                 self.send(socket, msg)
 
