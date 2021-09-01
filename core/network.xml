@@ -22,6 +22,7 @@
       <services>
         <service name="DefaultRoute"/>
         <service name="SSH"/>
+        <service name="UserDefined"/>
       </services>
     </device>
     <device id="4" name="R1" type="router" class="" image="">
@@ -46,6 +47,7 @@
       <services>
         <service name="DefaultRoute"/>
         <service name="SSH"/>
+        <service name="UserDefined"/>
       </services>
     </device>
   </devices>
@@ -92,21 +94,21 @@
         <startup>sh start_sotaru_service.sh</startup>
       </startups>
       <files>
-        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
-        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
-        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
-        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
-        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
-        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
-        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
-        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
         <file name="tcp_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger.py]]></file>
-        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
-        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
-        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
         <file name="tcp_client.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_client.py]]></file>
-        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
         <file name="file_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
       </files>
     </service>
     <service name="UserDefined" node="2">
@@ -114,21 +116,21 @@
         <startup>sh start_sotaru_service.sh</startup>
       </startups>
       <files>
-        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
-        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
-        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
-        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
-        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
-        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
-        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
-        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
         <file name="tcp_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger.py]]></file>
-        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
-        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
-        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
         <file name="tcp_client.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_client.py]]></file>
-        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
         <file name="file_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
       </files>
     </service>
     <service name="UserDefined" node="5">
@@ -136,21 +138,21 @@
         <startup>sh start_sotaru_service.sh</startup>
       </startups>
       <files>
-        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
-        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
-        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
-        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
-        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
-        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
-        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
-        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
         <file name="tcp_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger.py]]></file>
-        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
-        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
-        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
         <file name="tcp_client.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_client.py]]></file>
-        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
         <file name="file_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
       </files>
     </service>
     <service name="UserDefined" node="6">
@@ -158,21 +160,21 @@
         <startup>sh start_sotaru_service.sh</startup>
       </startups>
       <files>
-        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
-        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
-        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
-        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
-        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
-        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
-        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
-        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
         <file name="tcp_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger.py]]></file>
-        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
-        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
-        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/crypto.py]]></file>
         <file name="tcp_client.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_client.py]]></file>
-        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/node.py]]></file>
         <file name="file_logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleber/Documents/cleber/development/embedded/projects/SOTARU/logger.py]]></file>
       </files>
     </service>
   </service_configurations>
