@@ -108,6 +108,8 @@ class Raft:
                     self.update_followers_next_index(followers_next_index)
 
         elif cmd == "append_entries":
+            self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
+            
             leader_term = node_term
             leader_name = node_origin
 

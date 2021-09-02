@@ -2,8 +2,8 @@ import os
 from logger import Logger
 
 class File_Logger(Logger):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, enable_console = True):
+        super().__init__(name, enable_console)
         self.name = name
         self.file_name = name + '_log.txt'
         try:
