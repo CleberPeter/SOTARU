@@ -24,6 +24,7 @@ class Node:
     def __init__(self, name):
         self.name = name
         self.events : List[Event] = []
+        self.y_pos = 0
 
     def insert_event(self, event: Event):
         last_event = self.get_last_event()
@@ -40,14 +41,14 @@ class Node:
         else:
             return None
 
-    def get_y_pos(self):
-        node_number = self.name[1:]
-        return int(node_number)-1
+    def set_y_pos(self, val):
+        self.y_pos = val
 
 class Message:
-    def __init__(self, origin : Node, destiny : Node, send_time, receive_time):
+    def __init__(self, origin : Node, destiny : Node, type, send_time, receive_time):
         self.origin = origin
         self.destiny = destiny
+        self.type = type
         self.send_time = send_time
         self.receive_time = receive_time
 
@@ -87,12 +88,13 @@ class Time_Graph:
                 bl = patch.get_xy()
                 x = 0.5*patch.get_width() + bl[0]
                 y = 0.5*patch.get_height() + bl[1]
+                node.set_y_pos(y)
                 self.graph.text(x, y, event.type.name, ha='center',va='center', color='white')
     
     def plot_messages(self):
         for message in self.messages:
-            origin_y_pos = len(self.nodes) - message.origin.get_y_pos() - 1
-            destiny_y_pos = len(self.nodes) - message.destiny.get_y_pos() - 1
+            origin_y_pos = message.origin.y_pos
+            destiny_y_pos = message.destiny.y_pos
             len_arrow = destiny_y_pos - origin_y_pos
             diff_time = message.receive_time - message.send_time
             self.graph.arrow(message.send_time, origin_y_pos, diff_time, len_arrow, color = 'gray', width = 0.015, head_width = 0.06)
