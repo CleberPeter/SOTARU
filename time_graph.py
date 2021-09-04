@@ -1,5 +1,6 @@
 from typing import List
 import numpy as np
+import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
@@ -26,15 +27,12 @@ class Node:
 
     def insert_event(self, event: Event):
         last_event = self.get_last_event()
-        if last_event:
+        if last_event: # connect events
             self.update_event(last_event, event.init)
         self.events.append(event)
 
     def update_event(self, event: Event, ms):
         event.size = ms - event.init
-        if event.size < 0:
-            print('ms:', ms)
-            print('init:', event.init)
 
     def get_last_event(self):
         if len(self.events):
@@ -58,6 +56,10 @@ class Time_Graph:
         self.nodes : List[Node] = []
         self.messages : List[Message] = []
 
+        self.fig = plt.figure()
+        self.graph = self.fig.add_subplot(111)
+        matplotlib.rcParams['figure.raise_window'] = False # disable autofocus on figure
+
     def insert_node(self, name):
         self.nodes.append(Node(name))
 
@@ -76,46 +78,47 @@ class Time_Graph:
     def insert_message(self, message : Message):
         self.messages.append(message)
 
-    def plot_events(self, ax):
+    def plot_events(self):
         patch_handles = []
-
         for idx_node, node in enumerate(reversed(self.nodes)):
             for event in node.events:
-                patch_handles.append(ax.barh(idx_node, event.size, left = event.init, color = event.type.color, align='center'))
+                patch_handles.append(self.graph.barh(idx_node, event.size, left = event.init, color = event.type.color, align='center'))
                 patch = patch_handles[-1][0] 
                 bl = patch.get_xy()
                 x = 0.5*patch.get_width() + bl[0]
                 y = 0.5*patch.get_height() + bl[1]
-                ax.text(x, y, event.type.name, ha='center',va='center', color='white')
+                self.graph.text(x, y, event.type.name, ha='center',va='center', color='white')
     
-    def plot_messages(self, ax):
+    def plot_messages(self):
         for message in self.messages:
             origin_y_pos = len(self.nodes) - message.origin.get_y_pos() - 1
             destiny_y_pos = len(self.nodes) - message.destiny.get_y_pos() - 1
             len_arrow = destiny_y_pos - origin_y_pos
             diff_time = message.receive_time - message.send_time
-            ax.arrow(message.send_time, origin_y_pos, diff_time, len_arrow, color = 'gray', width = 0.015, head_width = 0.06)
+            self.graph.arrow(message.send_time, origin_y_pos, diff_time, len_arrow, color = 'gray', width = 0.015, head_width = 0.06)
 
-    def plot_legend(self, ax):
-        ax.set_xlabel('miliseconds')
+    def plot_legend(self):
+        self.graph.set_xlabel('miliseconds')
         y_pos = np.arange(len(self.nodes))
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels([node.name for node in reversed(self.nodes)])
+        self.graph.set_yticks(y_pos)
+        self.graph.set_yticklabels([node.name for node in reversed(self.nodes)])
 
         patches = []
         for event_type in event_types:
             patches.append(mpatches.Patch(label=event_type.name, color=event_type.color))
-        ax.legend(handles=patches)
+        self.graph.legend(handles=patches)
     
     def plot(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        
-        self.plot_events(ax)
-        self.plot_messages(ax)
-        self.plot_legend(ax)
+        self.graph.clear()
+        self.plot_events()
+        self.plot_messages()
+        self.plot_legend()
 
         plt.title('Events on SOTARU Infrastructure')
+        plt.draw()
+        plt.pause(0.0001)
+    
+    def plot_end(self):
         plt.show()
 
 EVENT_TYPE_FOLLOWER = Event_Type('FOLLOWER', 'navy')
@@ -128,7 +131,7 @@ event_types.append(EVENT_TYPE_CANDIDATE)
 event_types.append(EVENT_TYPE_LEADER)
 
 """time_graph = Time_Graph()
-nodes_len = 4
+nodes_len = 42
 
 # create nodes
 for i in range(nodes_len):

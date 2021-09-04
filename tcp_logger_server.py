@@ -4,9 +4,10 @@ from tcp_server import Tcp_Server
 from tcp_logger_server_info import Tcp_Logger_Server_Info
 from file_logger import File_Logger
 from time_graph import Event, Time_Graph
+from threading import Thread
 
 first_time = 0
-enabled_receive = True
+run = True
 
 # [2021-09-01 23:50:13.446] -> 446
 def get_ms(event_time):
@@ -36,41 +37,43 @@ def parser(data):
         node = time_graph.get_node(node_origin)
         last_event : Event = node.get_last_event()
         
-        if not last_event or last_event.type.name != state:
-            if last_event:
-                node.insert_event(Event(int(ms), 0, state))
-            else:
-                node.insert_event(Event(0, 0, state))
-        else:
+        if last_event and last_event.type.name == state:
             node.update_event(last_event, int(ms))
-
+        else:
+            event_time = int(ms)
+            if not last_event:
+                event_time = 0
+            node.insert_event(Event(int(event_time), 0, state))
+            
 def on_receive(self, log):
-    if enabled_receive:
-        log_str = log.decode("utf-8")
-        
-        parser(log_str)
-        file_logger.save(log_str)
+    log_str = log.decode("utf-8")
+    
+    parser(log_str)
+    file_logger.save(log_str)
+
+def thread_check_keyboard():
+    global run
+
+    while True:
+        answer = input("<s:stop>: ") ## blocking read
+        if answer == "s":
+            run = False
+            break
 
 if __name__ == "__main__":
-    
-#    parser('[2021-09-02 01:46:55.160] - [F3] - [RAFT_SM] - FOLLOWER')
-#    parser('[2021-09-02 01:46:56.258] - [F3] - [RAFT_SM] - CANDIDATE')
+
     file_logger = File_Logger('server', False)
     tcp_logger_server_info = Tcp_Logger_Server_Info()
     tcp_server = Tcp_Server(tcp_logger_server_info.port, on_receive)
     time_graph = Time_Graph()
 
-    sleep(10)
-    enabled_receive = False
+    Thread(target = thread_check_keyboard).start()
 
-    nodes = time_graph.nodes
-    """
-    for node in nodes:
-        print(' ')
-        print('node:',node.name)
-        for event in node.events:
-            print('type:', event.type.name)
-            print('init:', event.init)
-            print('size:', event.size)"""
-
-    time_graph.plot()
+    while True:
+        if run:
+            time_graph.plot()
+        else:
+            time_graph.plot_end()
+            break
+        
+        sleep(1)
