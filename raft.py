@@ -250,6 +250,7 @@ class Raft:
             voted = ";true"
         else:
             voted = ";false"
+            return
 
         msg = "request_vote_answer;" + self.name + ";"
         msg += str(self.current_term) + ";" + node_destiny + voted
