@@ -86,10 +86,18 @@ def thread_check_keyboard():
     global run
 
     while True:
-        answer = input("<s:stop>: ") ## blocking read
+        answer = input("<s:stop|l:limits>: ") ## blocking read
         if answer == "s":
             run = False
-            break
+        elif answer == "l":
+            if not run:
+                limits_srt = input("<inf_sup>: ")
+                limits = limits_srt.split('_')
+                time_graph.plot_update_limits(int(limits[0]),int(limits[1]))
+            else:
+                print('stop first.')
+        else:
+            print('command not recognitzed.')
 
 if __name__ == "__main__":
 
@@ -99,6 +107,8 @@ if __name__ == "__main__":
     time_graph = Time_Graph()
     
     Thread(target = thread_check_keyboard).start()
+
+    time_graph.plot_init()
 
     while True:
         if run:

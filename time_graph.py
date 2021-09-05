@@ -5,6 +5,8 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from enum import Enum
 
+WINDOW_SIZE = 5000 # ms
+
 class Message_Types(Enum):
     request_vote = 1
     request_vote_answer = 2
@@ -74,10 +76,12 @@ class Time_Graph:
     def __init__(self):
         self.nodes : List[Node] = []
         self.messages : List[Message] = []
+        self.removable_list = []
+        self.last_idx_msgs = 0
+        self.last_ms = 0
 
         self.fig = plt.figure()
         self.graph = self.fig.add_subplot(111)
-        self.ann_list = []
         matplotlib.rcParams['figure.raise_window'] = False # disable autofocus on figure
 
     def insert_node(self, name):
@@ -104,27 +108,39 @@ class Time_Graph:
         patch_handles = []
         for idx_node, node in enumerate(reversed(self.nodes)):
             for event in node.events:
-                patch_handles.append(self.graph.barh(idx_node, event.size, left = event.init, color = event.raft_state.color, align='center'))
+                last_ms = event.init + event.size
+                if last_ms > self.last_ms:
+                    self.last_ms = last_ms
+
+                barh = self.graph.barh(idx_node, event.size, left = event.init, color = event.raft_state.color, align='center')
+                patch_handles.append(barh)
                 patch = patch_handles[-1][0] 
                 bl = patch.get_xy()
                 x = 0.5*patch.get_width() + bl[0]
                 y = 0.5*patch.get_height() + bl[1]
                 node.set_y_pos(y)
-                self.graph.text(x, y, event.raft_state.name, ha='center',va='center', color='white')
-    
+                
+                self.removable_list.append(barh)
+                
     def plot_messages(self):
-        for message in self.messages:
-            origin_y_pos = message.origin.y_pos
-            destiny_y_pos = message.destiny.y_pos
-            ann = plt.annotate(message.type.value, verticalalignment="center", xy=(message.receive_time, destiny_y_pos), xytext=(message.send_time, origin_y_pos), arrowprops=dict(arrowstyle="->"))
-            self.ann_list.append(ann)
+        idx = 0
+        for idx, message in enumerate(self.messages):
+            if not self.last_idx_msgs or idx > self.last_idx_msgs:
+                origin_y_pos = message.origin.y_pos
+                destiny_y_pos = message.destiny.y_pos
+                plt.annotate(message.type.value, color = 'gray', verticalalignment="center", xy=(message.receive_time, destiny_y_pos), xytext=(message.send_time, origin_y_pos), arrowprops=dict(arrowstyle="->", color='gray'))
+                
+        self.last_idx_msgs = idx
 
-    def plot_legend(self):
-        self.graph.set_xlabel('miliseconds')
+    def plot_node_name_legend(self):
         y_pos = np.arange(len(self.nodes))
         self.graph.set_yticks(y_pos)
         self.graph.set_yticklabels([node.name for node in reversed(self.nodes)])
         
+    def plot_legend(self):
+        self.graph.set_xlabel('miliseconds')
+        self.plot_node_name_legend()
+
         patches = []
         for raft_state in Raft_States:
             patches.append(mpatches.Patch(label=raft_state.name, color=raft_state.color))
@@ -139,24 +155,43 @@ class Time_Graph:
 
         self.graph.legend(proxies, labels, loc="lower left")    
         self.graph.add_artist(leg1)
-
-    def clean_plot(self):
-        for ann in self.ann_list:
-            ann.remove()
-        self.ann_list = []
-        self.graph.clear()
         
+    def plot_init(self):
+        self.plot_legend()
+        plt.title('Events on SOTARU Infrastructure')
+    
+    def plot_clean(self):
+        for removable_item in self.removable_list:
+            removable_item.remove()
+        self.removable_list[:] = []
+
+    def plot_adjust_limits(self, inf_limit, sup_limit):
+        plt.xlim(inf_limit, sup_limit)
+
     def plot(self):
-        
-        self.clean_plot()
 
+        self.plot_node_name_legend()
+        
+        inf_limit = self.last_ms - WINDOW_SIZE
+        if inf_limit < 0:
+            inf_limit = 0
+
+        sup_limit = self.last_ms
+        if sup_limit < WINDOW_SIZE:
+            sup_limit = WINDOW_SIZE
+
+        self.plot_adjust_limits(inf_limit, sup_limit)
+
+        self.plot_clean()
         self.plot_events()
         self.plot_messages()
-        self.plot_legend()
-
-        plt.title('Events on SOTARU Infrastructure')
+        
         plt.draw()
         plt.pause(0.0001)
     
+    def plot_update_limits(self, inf_limit, sup_limit):
+        self.plot_adjust_limits(inf_limit, sup_limit)
+        plt.draw()
+
     def plot_end(self):
         plt.show()
