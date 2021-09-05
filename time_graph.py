@@ -116,7 +116,7 @@ class Time_Graph:
         for message in self.messages:
             origin_y_pos = message.origin.y_pos
             destiny_y_pos = message.destiny.y_pos
-            ann = plt.annotate(message.type.value, verticalalignment="center", xy=(message.send_time, origin_y_pos), xytext=(message.receive_time, destiny_y_pos), arrowprops=dict(arrowstyle="<-"))
+            ann = plt.annotate(message.type.value, verticalalignment="center", xy=(message.receive_time, destiny_y_pos), xytext=(message.send_time, origin_y_pos), arrowprops=dict(arrowstyle="->"))
             self.ann_list.append(ann)
 
     def plot_legend(self):
