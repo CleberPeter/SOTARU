@@ -3,22 +3,40 @@ import numpy as np
 import matplotlib
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from enum import Enum
 
-class Event_Type:
-    def __init__(self, name, color):
-        self.name = name
-        self.color = color
+class Message_Types(Enum):
+    request_vote = 1
+    request_vote_answer = 2
+    append_entries = 3
+    append_entries_answer = 4
+
+class Raft_States(Enum):
+    FOLLOWER = 1, 'navy'
+    CANDIDATE = 2, 'green'
+    LEADER = 3, 'red'
+    
+    def __new__(cls, *args, **kwds):
+        obj = object.__new__(cls)
+        obj._value_ = args[0]
+        return obj
+
+    def __init__(self, _: str, color: str = None):
+        self._color_ = color
+
+    def __str__(self):
+        return self.value
+
+    # this makes sure that the attribute is read-only
+    @property
+    def color(self):
+        return self._color_
 
 class Event:
-    def __init__(self, init, size, type):
+    def __init__(self, init, size, raft_state : Raft_States):
         self.init = init
         self.size = size
-        self.type = EVENT_TYPE_FOLLOWER
-
-        for event_type in event_types:
-            if type == event_type.name:
-                self.type = event_type
-                break
+        self.raft_state = raft_state
 
 class Node:
     def __init__(self, name):
@@ -45,7 +63,7 @@ class Node:
         self.y_pos = val
 
 class Message:
-    def __init__(self, origin : Node, destiny : Node, type, send_time, receive_time):
+    def __init__(self, origin : Node, destiny : Node, type : Message_Types, send_time, receive_time):
         self.origin = origin
         self.destiny = destiny
         self.type = type
@@ -59,6 +77,7 @@ class Time_Graph:
 
         self.fig = plt.figure()
         self.graph = self.fig.add_subplot(111)
+        self.ann_list = []
         matplotlib.rcParams['figure.raise_window'] = False # disable autofocus on figure
 
     def insert_node(self, name):
@@ -85,35 +104,52 @@ class Time_Graph:
         patch_handles = []
         for idx_node, node in enumerate(reversed(self.nodes)):
             for event in node.events:
-                patch_handles.append(self.graph.barh(idx_node, event.size, left = event.init, color = event.type.color, align='center'))
+                patch_handles.append(self.graph.barh(idx_node, event.size, left = event.init, color = event.raft_state.color, align='center'))
                 patch = patch_handles[-1][0] 
                 bl = patch.get_xy()
                 x = 0.5*patch.get_width() + bl[0]
                 y = 0.5*patch.get_height() + bl[1]
                 node.set_y_pos(y)
-                self.graph.text(x, y, event.type.name, ha='center',va='center', color='white')
+                self.graph.text(x, y, event.raft_state.name, ha='center',va='center', color='white')
     
     def plot_messages(self):
         for message in self.messages:
             origin_y_pos = message.origin.y_pos
             destiny_y_pos = message.destiny.y_pos
-            len_arrow = destiny_y_pos - origin_y_pos
-            diff_time = message.receive_time - message.send_time
-            self.graph.arrow(message.send_time, origin_y_pos, diff_time, len_arrow, color = 'gray', width = 0.015, head_width = 0.06)
+            ann = plt.annotate(message.type.value, verticalalignment="center", xy=(message.send_time, origin_y_pos), xytext=(message.receive_time, destiny_y_pos), arrowprops=dict(arrowstyle="<-"))
+            self.ann_list.append(ann)
 
     def plot_legend(self):
         self.graph.set_xlabel('miliseconds')
         y_pos = np.arange(len(self.nodes))
         self.graph.set_yticks(y_pos)
         self.graph.set_yticklabels([node.name for node in reversed(self.nodes)])
-
+        
         patches = []
-        for event_type in event_types:
-            patches.append(mpatches.Patch(label=event_type.name, color=event_type.color))
-        self.graph.legend(handles=patches)
-    
-    def plot(self):
+        for raft_state in Raft_States:
+            patches.append(mpatches.Patch(label=raft_state.name, color=raft_state.color))
+        leg1 = self.graph.legend(handles = patches)
+
+        proxies = []
+        labels = []
+        for message_type in Message_Types:
+            proxies.append(matplotlib.lines.Line2D([0], [0], linestyle='none', mfc='black',
+                mec='none', marker=r'$\mathregular{{{}}}$'.format(message_type.value)))
+            labels.append(message_type.name)
+
+        self.graph.legend(proxies, labels, loc="lower left")    
+        self.graph.add_artist(leg1)
+
+    def clean_plot(self):
+        for ann in self.ann_list:
+            ann.remove()
+        self.ann_list = []
         self.graph.clear()
+        
+    def plot(self):
+        
+        self.clean_plot()
+
         self.plot_events()
         self.plot_messages()
         self.plot_legend()
@@ -124,48 +160,3 @@ class Time_Graph:
     
     def plot_end(self):
         plt.show()
-
-EVENT_TYPE_FOLLOWER = Event_Type('FOLLOWER', 'navy')
-EVENT_TYPE_CANDIDATE = Event_Type('CANDIDATE', 'green')
-EVENT_TYPE_LEADER = Event_Type('LEADER', 'red')
-
-event_types : List[Event_Type] = []
-event_types.append(EVENT_TYPE_FOLLOWER)
-event_types.append(EVENT_TYPE_CANDIDATE)
-event_types.append(EVENT_TYPE_LEADER)
-
-"""time_graph = Time_Graph()
-nodes_len = 42
-
-# create nodes
-for i in range(nodes_len):
-    node_name = 'F' + str((i+1))
-    time_graph.insert_node(node_name)
-"""
-
-# insert events
-"""for i in range(7):
-    if (i == 0):
-        time_graph.nodes[i].insert_event(Event(0, 1, EVENT_TYPE_FOLLOWER))
-        time_graph.nodes[i].insert_event(Event(1, 1, EVENT_TYPE_CANDIDATE))
-        time_graph.nodes[i].insert_event(Event(2, 1, EVENT_TYPE_LEADER))
-    else:
-        time_graph.nodes[i].insert_event(Event(0, 3, EVENT_TYPE_FOLLOWER))
-"""
-"""time_graph.nodes[2].insert_event(Event(0, 732, 'FOLLOWER'))
-
-time_graph.nodes[1].insert_event(Event(0, 255, 'FOLLOWER'))
-time_graph.nodes[1].insert_event(Event(255, 1, 'CANDIDATE'))
-time_graph.nodes[1].insert_event(Event(226, 501, 'LEADER'))
-
-time_graph.nodes[0].insert_event(Event(0, 735, 'FOLLOWER'))
-
-time_graph.nodes[3].insert_event(Event(0, 258, 'FOLLOWER'))
-time_graph.nodes[3].insert_event(Event(258, 479, 'CANDIDATE'))
-time_graph.nodes[3].insert_event(Event(737, 0, 'FOLLOWER'))
-"""
-# insert messages
-# time_graph.insert_message(Message(time_graph.nodes[0], time_graph.nodes[6], 0.8, 0.8))
-# time_graph.insert_message(Message(time_graph.nodes[0], time_graph.nodes[2], 0.8, 0.9))
-
-# time_graph.plot()

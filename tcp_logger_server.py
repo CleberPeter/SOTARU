@@ -4,7 +4,7 @@ from typing import List
 from tcp_server import Tcp_Server
 from tcp_logger_server_info import Tcp_Logger_Server_Info
 from file_logger import File_Logger
-from time_graph import Event, Message, Time_Graph
+from time_graph import Event, Message, Message_Types, Raft_States, Time_Graph
 from threading import Thread
 
 first_time = 0
@@ -38,21 +38,22 @@ def parser(data):
     cmd = fields[2][1:-1]
     
     if cmd == 'RAFT_SM': # FOLLOWER|CANDIDATE|LEADER
-        state = fields[3]
+        raft_state = fields[3]
         node = time_graph.get_node(node_origin)
         last_event : Event = node.get_last_event()
         
-        if last_event and last_event.type.name == state:
+        if last_event and last_event.raft_state.name == raft_state:
             node.update_event(last_event, int(ms))
         else:
             event_time = int(ms)
             if not last_event:
                 event_time = 0
-            node.insert_event(Event(int(event_time), 0, state))
+            node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
 
     elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name
         fields_data = fields[3].split(';')
-        type = fields_data[0]
+        
+        type = Message_Types[fields_data[0]]
         node_origin = time_graph.get_node(fields_data[1])
         node_destiny = time_graph.get_node(fields_data[3])
         
