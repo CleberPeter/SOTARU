@@ -24,15 +24,18 @@ def get_ms(event_time):
         first_time = event_time
         return 0
 
+def get_message_id(type, origin_name, destiny_name):
+    for idx, message in enumerate(messages):
+        if message.type == type and message.origin.name == origin_name and message.destiny.name == destiny_name:
+            return idx
+    return -1
+
 # [2021-09-01 23:50:13.446] - [server] - [2021-09-01 23:50:13.445] - [F3] - [RAFT_SM] - FOLLOWER
 def parser(data):
     fields = data.split(' - ')
     ms = get_ms(fields[0])
     node_origin = fields[1][1:-1]
     cmd = fields[2][1:-1]
-
-    if not time_graph.has_node(node_origin):
-        time_graph.insert_node(node_origin)
     
     if cmd == 'RAFT_SM': # FOLLOWER|CANDIDATE|LEADER
         state = fields[3]
@@ -47,52 +50,31 @@ def parser(data):
                 event_time = 0
             node.insert_event(Event(int(event_time), 0, state))
 
-    elif cmd == 'SEND': # request_vote;F3;1;F1
+    elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name
         fields_data = fields[3].split(';')
         type = fields_data[0]
         node_origin = time_graph.get_node(fields_data[1])
-        
-        if not time_graph.has_node(fields_data[3]):
-            time_graph.insert_node(fields_data[3])
-        
         node_destiny = time_graph.get_node(fields_data[3])
         
-        found_message = False
-        for idx, message in enumerate(messages):
-            if message.type == type and message.origin.name == node_origin.name and message.destiny.name == node_destiny.name:
+        msg_id = get_message_id(type, node_origin.name, node_destiny.name)
+        if msg_id != -1:
+            message = messages[msg_id]
+
+            if cmd == 'SEND':
                 message.send_time = ms
-                time_graph.insert_message(message)
-                found_message = True
-                messages.pop(idx)
-                break
-        
-        if not found_message:
-            message = Message(node_origin, node_destiny, type, ms, -1)
+            elif cmd == 'RECEIVED':
+                message.receive_time = ms
+            
+            time_graph.insert_message(message)
+            messages.pop(msg_id)
+        else:
+            if cmd == 'SEND':
+                message = Message(node_origin, node_destiny, type, ms, -1)
+            elif cmd == 'RECEIVED':
+                message = Message(node_origin, node_destiny, type, -1, ms)
+            
             messages.append(message)
     
-    elif cmd == 'RECEIVED': # request_vote;F3;1;F1
-        fields_data = fields[3].split(';')
-        type = fields_data[0]
-        node_destiny = time_graph.get_node(fields_data[3])
-        
-        if not time_graph.has_node(fields_data[1]):
-            time_graph.insert_node(fields_data[1])
-        
-        node_origin = time_graph.get_node(fields_data[1])
-        
-        found_message = False
-        for idx, message in enumerate(messages):
-            if message.type == type and message.origin.name == node_origin.name and message.destiny.name == node_destiny.name:
-                message.receive_time = ms
-                time_graph.insert_message(message)
-                found_message = True
-                messages.pop(idx)
-                break
-        
-        if not found_message:
-            message = Message(node_origin, node_destiny, type, -1, ms)
-            messages.append(message)
-
 def on_receive(self, log):
     log_str = log.decode("utf-8")
     

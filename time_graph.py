@@ -68,7 +68,9 @@ class Time_Graph:
         for node in self.nodes:
             if node.name == name:
                 return node
-        return None
+
+        self.insert_node(name)
+        return self.get_node(name)
 
     def has_node(self, name):
         for node in self.nodes:
