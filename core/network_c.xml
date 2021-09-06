@@ -1,0 +1,225 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario name="/home/cleber/Documents/cleber/development/embedded/projects/SOTARU/core/network.xml">
+  <networks>
+    <network id="3" name="H1" type="HUB">
+      <position x="184" y="176" lat="47.5775668954683" lon="-122.12984264981584" alt="2.0"/>
+    </network>
+    <network id="7" name="H2" type="HUB">
+      <position x="706" y="175" lat="47.577575985404856" lon="-122.12280884114116" alt="2.0"/>
+    </network>
+  </networks>
+  <devices>
+    <device id="1" name="F1" type="host" class="" image="">
+      <position x="63" y="333" lat="47.576139755856026" lon="-122.13147309205651" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+        <service name="UserDefined"/>
+      </services>
+    </device>
+    <device id="2" name="F2" type="host" class="" image="">
+      <position x="265" y="345" lat="47.57603067352115" lon="-122.12875119674564" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+        <service name="UserDefined"/>
+      </services>
+    </device>
+    <device id="4" name="R1" type="router" class="" image="">
+      <position x="371" y="175" lat="47.577575985404856" lon="-122.12732287544387" alt="2.0"/>
+      <services>
+        <service name="OSPFv3"/>
+        <service name="IPForward"/>
+        <service name="zebra"/>
+        <service name="OSPFv2"/>
+      </services>
+    </device>
+    <device id="5" name="F3" type="host" class="" image="">
+      <position x="599" y="325" lat="47.57621247728636" lon="-122.1242506371722" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+        <service name="UserDefined"/>
+      </services>
+    </device>
+    <device id="6" name="F4" type="host" class="" image="">
+      <position x="815" y="334" lat="47.576130665670135" lon="-122.12134009565163" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+        <service name="UserDefined"/>
+      </services>
+    </device>
+  </devices>
+  <links>
+    <link node1="3" node2="4">
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:00" ip4="10.0.0.1" ip4_mask="24" ip6="2001::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+    </link>
+    <link node1="3" node2="1">
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:02" ip4="10.0.0.20" ip4_mask="24" ip6="2001::14" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+    </link>
+    <link node1="3" node2="2">
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:03" ip4="10.0.0.21" ip4_mask="24" ip6="2001::15" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+    </link>
+    <link node1="7" node2="4">
+      <iface2 id="1" name="eth1" mac="00:00:00:aa:00:01" ip4="10.0.1.1" ip4_mask="24" ip6="2001:0:0:1::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+    </link>
+    <link node1="7" node2="5">
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:04" ip4="10.0.1.20" ip4_mask="24" ip6="2001:0:0:1::14" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+    </link>
+    <link node1="7" node2="6">
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:05" ip4="10.0.1.21" ip4_mask="24" ip6="2001:0:0:1::15" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+    </link>
+  </links>
+  <emane_global_configuration>
+    <emulator/>
+    <core>
+      <configuration name="platform_id_start" value="1"/>
+      <configuration name="nem_id_start" value="1"/>
+      <configuration name="link_enabled" value="1"/>
+      <configuration name="loss_threshold" value="30"/>
+      <configuration name="link_interval" value="1"/>
+      <configuration name="link_timeout" value="4"/>
+    </core>
+  </emane_global_configuration>
+  <service_configurations>
+    <service name="UserDefined" node="1">
+      <startups>
+        <startup>sh start_sotaru_service.sh</startup>
+      </startups>
+      <files>
+        <file name="tcp_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/crypto.py]]></file>
+        <file name="tcp_client.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_client.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleberpeter/Music/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/node.py]]></file>
+        <file name="file_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger.py]]></file>
+      </files>
+    </service>
+    <service name="UserDefined" node="2">
+      <startups>
+        <startup>sh start_sotaru_service.sh</startup>
+      </startups>
+      <files>
+        <file name="tcp_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/crypto.py]]></file>
+        <file name="tcp_client.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_client.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleberpeter/Music/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/node.py]]></file>
+        <file name="file_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger.py]]></file>
+      </files>
+    </service>
+    <service name="UserDefined" node="5">
+      <startups>
+        <startup>sh start_sotaru_service.sh</startup>
+      </startups>
+      <files>
+        <file name="tcp_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/crypto.py]]></file>
+        <file name="tcp_client.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_client.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleberpeter/Music/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/node.py]]></file>
+        <file name="file_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger.py]]></file>
+      </files>
+    </service>
+    <service name="UserDefined" node="6">
+      <startups>
+        <startup>sh start_sotaru_service.sh</startup>
+      </startups>
+      <files>
+        <file name="tcp_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger.py]]></file>
+        <file name="crypto.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/crypto.py]]></file>
+        <file name="tcp_client.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_client.py]]></file>
+        <file name="network_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network_info.csv]]></file>
+        <file name="tcp_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_server.py]]></file>
+        <file name="start_sotaru_service.sh"><![CDATA[file:///home/cleberpeter/Music/SOTARU/core/start_sotaru_service.sh]]></file>
+        <file name="node.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/node.py]]></file>
+        <file name="file_logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/file_logger.py]]></file>
+        <file name="logger_server_info.csv"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger_server_info.csv]]></file>
+        <file name="network.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/network.py]]></file>
+        <file name="raft.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/raft.py]]></file>
+        <file name="tcp_logger_server_info.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/tcp_logger_server_info.py]]></file>
+        <file name="helper.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/helper.py]]></file>
+        <file name="http_server.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/http_server.py]]></file>
+        <file name="logger.py"><![CDATA[file:///home/cleberpeter/Music/SOTARU/logger.py]]></file>
+      </files>
+    </service>
+  </service_configurations>
+  <session_origin lat="47.5791667" lon="-122.132322" alt="2.0" scale="150.0"/>
+  <session_options>
+    <configuration name="controlnet" value="172.16.0.0/24"/>
+    <configuration name="controlnet0" value=""/>
+    <configuration name="controlnet1" value=""/>
+    <configuration name="controlnet2" value=""/>
+    <configuration name="controlnet3" value=""/>
+    <configuration name="controlnet_updown_script" value=""/>
+    <configuration name="enablerj45" value="1"/>
+    <configuration name="preservedir" value="0"/>
+    <configuration name="enablesdt" value="0"/>
+    <configuration name="sdturl" value="tcp://127.0.0.1:50000/"/>
+    <configuration name="ovs" value="0"/>
+  </session_options>
+  <session_metadata>
+    <configuration name="canvas" value="{&quot;gridlines&quot;: true, &quot;dimensions&quot;: [1000, 750], &quot;canvases&quot;: [{&quot;id&quot;: 1, &quot;wallpaper&quot;: null, &quot;wallpaper_style&quot;: 1, &quot;fit_image&quot;: false}]}"/>
+    <configuration name="edges" value="[]"/>
+    <configuration name="shapes" value="[]"/>
+    <configuration name="hidden" value="[]"/>
+    <configuration name="canvas c1" value="{name {Canvas1}}"/>
+    <configuration name="canvas " value="[]"/>
+    <configuration name="global_options" value="interface_names=no ip_addresses=yes ipv6_addresses=yes node_labels=yes link_labels=yes show_api=no background_images=no annotations=yes grid=yes traffic_start=0"/>
+  </session_metadata>
+  <default_services>
+    <node type="mdr">
+      <service name="zebra"/>
+      <service name="OSPFv3MDR"/>
+      <service name="IPForward"/>
+    </node>
+    <node type="PC">
+      <service name="DefaultRoute"/>
+    </node>
+    <node type="prouter"/>
+    <node type="router">
+      <service name="zebra"/>
+      <service name="OSPFv2"/>
+      <service name="OSPFv3"/>
+      <service name="IPForward"/>
+    </node>
+    <node type="host">
+      <service name="DefaultRoute"/>
+      <service name="SSH"/>
+    </node>
+  </default_services>
+</scenario>

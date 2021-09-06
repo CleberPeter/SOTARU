@@ -15,16 +15,16 @@ class Node:
     def __init__(self, node_info : NodeInfo, force_leader = False):
 
         self.node_info = node_info
-        tcp_logger = Tcp_Logger(node.name)
-        self.raft = Raft(self.node_info.name, self.node_info.tcp_port, tcp_logger, force_leader)
-        # self.http_sever = HttpServer(self.node_info.http_port, self.on_http_server_receive)
+        self.tcp_logger = Tcp_Logger(node.name)
+        self.raft = Raft(self.node_info.name, self.node_info.tcp_port, self.tcp_logger, force_leader)
+        self.http_sever = HttpServer(self.node_info.http_port, self.on_http_server_receive)
 
         start_msg = '[INITIALIZED] - ' + node.get_str_info()
-        tcp_logger.save(start_msg)
+        self.tcp_logger.save(start_msg)
     
     def kill(self):
 
-        print("NODE_" + self.name + ": killed")
+        self.tcp_logger.save("[KILL]")
 
         pid = str(os.getpid())
         cmd = "kill " + pid
@@ -32,7 +32,7 @@ class Node:
 
     def reset(self, time):
         
-        print("NODE_" + self.name + ": reset")
+        self.tcp_logger("[RESET]")
 
         pid = str(os.getpid())
         cmd = "kill " + pid
@@ -51,7 +51,8 @@ class Node:
     # TODO: implement unidirectional failures
     def add_author(self, author_data_json, answer):
 
-        print("NODE_" + self.name + ": add_author")
+        self.tcp_logger("[ADD_AUTHOR]")
+
         author_data = json.loads(author_data_json)
         (sk, pk) = crypto.ecdsa_gen_pair_keys()
 

@@ -33,5 +33,6 @@ make clean
 
 ./bootstrap.sh clean
 
-sudo inv uninstall
+inv uninstall
 
+pipx uninstall-all
