@@ -37,7 +37,12 @@ def parser(data):
     node_origin = fields[1][1:-1]
     cmd = fields[2][1:-1]
     
-    if cmd == 'RAFT_SM': # FOLLOWER|CANDIDATE|LEADER
+    if cmd == 'KILL' or cmd == 'RESET' or cmd == 'SUSPEND':
+        node = time_graph.get_node(node_origin)
+        event_time = int(ms)
+        node.insert_event(Event(int(event_time), 0, Raft_States.OFFLINE))
+
+    elif cmd == 'RAFT_SM': # FOLLOWER|CANDIDATE|LEADER
         raft_state = fields[3]
         node = time_graph.get_node(node_origin)
         last_event : Event = node.get_last_event()
@@ -49,6 +54,16 @@ def parser(data):
             if not last_event:
                 event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
+
+    elif cmd == 'FAIL_CONNECT': # $destiny_name;$msg
+        fields_data = fields[3].split(';')
+        
+        type = Message_Types.fail_connect
+        node_origin = time_graph.get_node(node_origin)
+        node_destiny = time_graph.get_node(fields_data[0])
+        
+        message = Message(node_origin, node_destiny, type, ms, ms+1)
+        time_graph.insert_message(message)
 
     elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name
         fields_data = fields[3].split(';')

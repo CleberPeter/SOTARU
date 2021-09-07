@@ -222,15 +222,17 @@ class Raft:
         self.timer = Timer(time, self.timeout_handle, [])
         self.timer.start()
 
+    def log_fail_to_connect(self, node_destiny : NodeInfo, e : Exception):
+        self.tcp_logger.save('[FAIL_CONNECT] - ' + node_destiny.name + ';' + str(e))
+                    
     def send_broadcast(self, msg):
-        
         nodes : List[NodeInfo] = Network.get_nodes()
         for node in nodes:
             if node.name != self.name:  # do not send to myself
                 try:
                     socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
                 except Exception as e:  # fail to connect
-                    self.tcp_logger.save('[FAIL_CONNECT] - ' + node.host + ' ' + str(e))
+                    self.log_fail_to_connect(node, e)
                     continue
                 
                 self.send(socket, msg + ";" + node.name)
@@ -285,7 +287,8 @@ class Raft:
 
                 try:
                     socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
-                except Exception:  # fail to connect
+                except Exception as e:  # fail to connect
+                    self.log_fail_to_connect(follower.info, e)
                     continue
 
                 self.send(socket, msg)

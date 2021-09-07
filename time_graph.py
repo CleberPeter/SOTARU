@@ -12,11 +12,13 @@ class Message_Types(Enum):
     request_vote_answer = 2
     append_entries = 3
     append_entries_answer = 4
+    fail_connect = 5
 
 class Raft_States(Enum):
     FOLLOWER = 1, 'navy'
     CANDIDATE = 2, 'green'
     LEADER = 3, 'red'
+    OFFLINE = 4, 'black'
     
     def __new__(cls, *args, **kwds):
         obj = object.__new__(cls)
@@ -83,6 +85,8 @@ class Time_Graph:
         self.fig = plt.figure()
         self.graph = self.fig.add_subplot(111)
         matplotlib.rcParams['figure.raise_window'] = False # disable autofocus on figure
+        self.graph.patch.set_facecolor('gray')
+        self.graph.patch.set_alpha(0.5)
 
     def insert_node(self, name):
         self.nodes.append(Node(name))
@@ -128,7 +132,7 @@ class Time_Graph:
             if not self.last_idx_msgs or idx > self.last_idx_msgs:
                 origin_y_pos = message.origin.y_pos
                 destiny_y_pos = message.destiny.y_pos
-                plt.annotate(message.type.value, color = 'gray', verticalalignment="center", xy=(message.receive_time, destiny_y_pos), xytext=(message.send_time, origin_y_pos), arrowprops=dict(arrowstyle="->", color='gray'))
+                plt.annotate(message.type.value, color = 'white', verticalalignment="center", xy=(message.receive_time, destiny_y_pos), xytext=(message.send_time, origin_y_pos), arrowprops=dict(arrowstyle="->", color='white'))
                 
         self.last_idx_msgs = idx
 
@@ -168,8 +172,14 @@ class Time_Graph:
     def plot_adjust_limits(self, inf_limit, sup_limit):
         plt.xlim(inf_limit, sup_limit)
 
-    def plot(self):
+    def update_offline_nodes(self):
+        for node in self.nodes:
+            last_event = node.get_last_event()
+            if last_event and last_event.raft_state == Raft_States.OFFLINE:
+                node.update_event(last_event, self.last_ms)
 
+    def plot(self):
+        self.update_offline_nodes()
         self.plot_node_name_legend()
         
         inf_limit = self.last_ms - WINDOW_SIZE
