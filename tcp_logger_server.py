@@ -65,7 +65,7 @@ def parser(data):
         message = Message(node_origin, node_destiny, type, ms, ms+1)
         time_graph.insert_message(message)
 
-    elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name
+    elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name;$prev_index;$prev_term;$data;$data_term
         fields_data = fields[3].split(';')
         
         type = Message_Types[fields_data[0]]

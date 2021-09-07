@@ -106,6 +106,9 @@ class Raft:
                     followers_next_index = leader_next_index - 1
 
                     self.update_followers_next_index(followers_next_index)
+                    # notify network that i'm the leader
+                    self.timer.cancel()
+                    self.timeout_handle()
 
         elif cmd == "append_entries":
             self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
@@ -217,7 +220,6 @@ class Raft:
             server.close()
 
     def reinit_timer(self, time=1):
-
         self.timer.cancel()
         self.timer = Timer(time, self.timeout_handle, [])
         self.timer.start()
@@ -243,7 +245,6 @@ class Raft:
         self.send_broadcast(msg)
 
     def send_request_votes_answer(self, socket, voted, node_destiny):
-
         if voted:
             voted = ";true"
         else:
@@ -255,7 +256,6 @@ class Raft:
         self.send(socket, msg)
 
     def send_append_entries(self, data):
-
         if self.i_am_leader():
 
             if not self.is_heartbeat(data):
@@ -303,7 +303,6 @@ class Raft:
             socket.send(msg)
 
     def send_append_entries_answer(self, socket, accept, node_destiny):
-
         msg = "append_entries_answer;" + self.name + ';'
         msg += str(self.current_term) + ';' + node_destiny + ';' + str(accept)
         self.send(socket, msg)
