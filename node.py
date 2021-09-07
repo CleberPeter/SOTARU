@@ -13,7 +13,6 @@ from http_server import HttpServer
 class Node:
 
     def __init__(self, node_info : NodeInfo, force_leader = False):
-
         self.node_info = node_info
         self.tcp_logger = Tcp_Logger(node.name)
         self.raft = Raft(self.node_info.name, self.node_info.tcp_port, self.tcp_logger, force_leader)
@@ -23,27 +22,26 @@ class Node:
         self.tcp_logger.save(start_msg)
     
     def kill(self):
-
         self.tcp_logger.save("[KILL]")
 
         pid = str(os.getpid())
         cmd = "kill " + pid
+
         os.system(cmd)
 
     def reset(self, time):
-        
-        self.tcp_logger("[RESET]")
+        self.tcp_logger.save("[RESET]")
 
         pid = str(os.getpid())
         cmd = "kill " + pid
         cmd += "; sleep " + time + ";"
-        cmd += "python3 node.py " + self.name + " " + \
-            str(self.tcp_server_port) + " " + str(self.http_server_port)
-
+        cmd += "python3 node.py"
+        
         os.system(cmd)
 
     def suspend(self, time):
-        
+        self.tcp_logger.save("[SUSPEND]")
+
         self.raft.suspend()
         sleep(int(time))
         self.raft.resume()

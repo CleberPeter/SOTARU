@@ -6,7 +6,7 @@ This section describes the HTTP API for interaction with nodes.
 Only kill node process.
 
 ```console
-root@pc:~$ curl -X POST localhost:8080 -d 'action=kill'
+root@pc:~$ curl -X POST 172.16.0.1:8080 -d 'action=kill'
 ```
 #### Return
 none.
@@ -15,7 +15,7 @@ none.
 Kill and after $time seconds reopen node process.
 
 ```console
-root@pc:~$ curl -X POST localhost:8080 -d 'action=reset&time=2'
+root@pc:~$ curl -X POST 172.16.0.1:8080 -d 'action=reset&time=2'
 ```
 #### Return
 none.
@@ -24,7 +24,7 @@ none.
 Suspend and after $time seconds resume node process. In this mode, the volatile memory of the node is kept intact.
 
 ```console
-root@pc:~$ curl -X POST localhost:8080 -d 'action=suspend&time=2'
+root@pc:~$ curl -X POST 172.16.0.1:8080 -d 'action=suspend&time=2'
 ```
 #### Success
 {"status": "success"}

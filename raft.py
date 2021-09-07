@@ -199,14 +199,10 @@ class Raft:
         """
     
     def suspend(self):
-
-        self.tcp_logger.save('[SUSPEND]')
         self.timer.cancel()
         self.suspended = True
     
     def resume(self):
-
-        self.tcp_logger.save('[RESUME]')
         self.suspended = False
         self.reinit_timer()
 

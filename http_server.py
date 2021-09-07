@@ -39,8 +39,6 @@ class Http_Handler(BaseHTTPRequestHandler):
         self._set_response()
         self.wfile.write(asnwer.encode('utf-8'))
 
-
-
 class HttpServer:
     def __init__(self, port, on_receive):
         server_address = ('', port)
