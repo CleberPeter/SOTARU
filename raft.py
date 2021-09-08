@@ -110,7 +110,7 @@ class Raft:
 
             if leader_term > self.current_term:
                 # TODO: or (check log index to)
-                if self.voted_for == '' or True:
+                if self.voted_for == '':
                     self.current_term = leader_term
                     self.voted_for = leader_name
                     self.sm = "FOLLOWER"
@@ -121,15 +121,12 @@ class Raft:
             self.send_request_votes_answer(socket, voted, leader_name)
 
         elif msg.type == "request_vote_answer":
-
             status_vote = msg.data
             if status_vote == "true":
                 self.votes += 1
                 nodes : List[NodeInfo] = Network.get_nodes()
 
                 if self.votes > len(nodes)/2:
-                    self.sm = "LEADER"
-
                     leader_next_index = len(self.logs)
 
                     # this differs from the raft's original proposal, in
@@ -143,7 +140,9 @@ class Raft:
                     self.update_followers_next_index(followers_next_index)
                     
                     # notify network that i'm the leader
-                    self.timeout_handle()
+                    if self.sm != "LEADER":
+                        self.sm = "LEADER"
+                        self.timeout_handle()
 
         elif msg.type == "append_entries":         
             leader_term = msg.leader_term
@@ -300,7 +299,6 @@ class Raft:
             original_data = data
 
             for follower in self.followers:
-
                 try:
                     socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
                 except Exception as e:  # fail to connect
@@ -387,9 +385,7 @@ class Raft:
                 self.reinit_timer(timeout)
 
         elif self.sm == "CANDIDATE":
-
             if self.voted_for == '':
-
                 self.current_term += 1
                 self.voted_for = self.name
                 self.votes = 1
@@ -405,6 +401,5 @@ class Raft:
                 self.timeout_handle()
 
         elif self.sm == "LEADER":
-
             self.reinit_timer(HEARTBEAT_TIMEOUT)
             self.send_append_entries('')  # empty data -> heartbeat
