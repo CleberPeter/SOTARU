@@ -1,4 +1,5 @@
 from ecdsa import SigningKey, VerifyingKey, SECP256k1
+import zlib
 
 def ecdsa_gen_pair_keys(curve=SECP256k1):
     sk = SigningKey.generate(curve)
@@ -8,3 +9,9 @@ def ecdsa_gen_pair_keys(curve=SECP256k1):
     pk_str = "04" + str(pk.to_string().hex()) # 04 - uncompressed format
 
     return (sk_str, pk_str)
+
+def CRC32(data_str):
+    s = str.encode(data_str)
+    t = zlib.crc32(s)
+    return t
+

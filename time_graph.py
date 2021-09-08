@@ -67,7 +67,8 @@ class Node:
         self.y_pos = val
 
 class Message:
-    def __init__(self, origin : Node, destiny : Node, type : Message_Types, send_time, receive_time):
+    def __init__(self, id, origin : Node, destiny : Node, type : Message_Types, send_time, receive_time):
+        self.id = id
         self.origin = origin
         self.destiny = destiny
         self.type = type

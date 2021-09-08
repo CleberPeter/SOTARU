@@ -89,7 +89,6 @@ class Node:
         return json.dumps(answer)
 
 if __name__ == "__main__":
-
     my_ip = Helper.get_ip()
     node : NodeInfo = Network.get_node_info(my_ip)
     

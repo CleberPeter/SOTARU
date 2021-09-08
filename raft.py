@@ -1,5 +1,7 @@
 import os
 import json
+import crypto
+import time
 from threading import Timer
 from random import randint
 from typing import List
@@ -26,6 +28,43 @@ class Log:
         self.data = data
         self.term = term
         self.acks = acks
+
+class Message:
+    def __init__(self, type, sender, leader_term, receiver, prev_index, prev_term, data, data_term):
+        self.type = type
+        self.sender = sender
+        self.leader_term = leader_term
+        self.receiver = receiver
+        self.prev_index = prev_index
+        self.prev_term = prev_term
+        self.data = data
+        self.data_term = data_term
+
+    def from_csv(csv_data):
+        fields = str.split(csv_data, ';')
+        
+        id = int(fields[0])
+        type = fields[1]
+        sender = fields[2] 
+        leader_term = int(fields[3])
+        receiver = fields[4] 
+        prev_index = int(fields[5])
+        prev_term = int(fields[6])
+        data = fields[7]
+        data_term = int(fields[8])
+
+        msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
+        msg.id = id
+
+        return msg
+
+    def to_csv(self):
+        csv = self.type + ';' + self.sender + ';' + str(self.leader_term) + ';'
+        csv += self.receiver + ';' + str(self.prev_index) + ';' + str(self.prev_term) + ';'
+        csv += self.data + ';' + str(self.data_term)
+        self.id = crypto.CRC32(str(time.time()) + csv)
+        csv = str(self.id) + ';' + csv
+        return csv
 
 class Raft:
     def __init__(self, name, tcp_sever_port, tcp_logger : Tcp_Logger, force_leader=False):
@@ -60,18 +99,14 @@ class Raft:
 
     def parser(self, socket, data):
 
-        msg = data.decode("utf-8")
-        self.tcp_logger.save('[RECEIVED] - ' + msg)
+        data_str = data.decode("utf-8")
+        self.tcp_logger.save('[RECEIVED] - ' + data_str)
 
-        fields = msg.split(';')
-        cmd = fields[0]
-        node_origin = fields[1]
-        node_term = int(fields[2])
-        node_destiny = fields[3]
+        msg : Message = Message.from_csv(data_str)
 
-        if cmd == "request_vote":
-            leader_term = node_term
-            leader_name = node_origin
+        if msg.type == "request_vote":
+            leader_term = msg.leader_term
+            leader_name = msg.sender
 
             if leader_term > self.current_term:
                 # TODO: or (check log index to)
@@ -85,9 +120,9 @@ class Raft:
 
             self.send_request_votes_answer(socket, voted, leader_name)
 
-        elif cmd == "request_vote_answer":
+        elif msg.type == "request_vote_answer":
 
-            status_vote = fields[4]
+            status_vote = msg.data
             if status_vote == "true":
                 self.votes += 1
                 nodes : List[NodeInfo] = Network.get_nodes()
@@ -106,30 +141,28 @@ class Raft:
                     followers_next_index = leader_next_index - 1
 
                     self.update_followers_next_index(followers_next_index)
+                    
                     # notify network that i'm the leader
-                    self.timer.cancel()
                     self.timeout_handle()
 
-        elif cmd == "append_entries":
-            self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
-            
-            leader_term = node_term
-            leader_name = node_origin
+        elif msg.type == "append_entries":         
+            leader_term = msg.leader_term
+            leader_name = msg.sender
 
             accept = False
             next_index = len(self.logs)
 
             if leader_term >= self.current_term:
-                leader_prev_index = int(fields[4])
-                leader_prev_term = int(fields[5])
+                leader_prev_index = msg.prev_index
+                leader_prev_term = msg.prev_term
 
                 prev_term = self.logs[leader_prev_index].term
 
                 # my log is consistent with leader ?
                 # the previous log has to have same term of leader.
                 if leader_prev_term == prev_term:
-                    data = fields[6]
-                    data_term = int(fields[7])
+                    data = msg.data
+                    data_term = msg.data_term
 
                     if not self.is_heartbeat(data):
                         leader_index = leader_prev_index + 1
@@ -163,11 +196,10 @@ class Raft:
                 # of the current leader.
                 self.timeout_handle()
 
-        elif cmd == "append_entries_answer":
-
-            accept = fields[4]
+        elif msg.type == "append_entries_answer":
+            accept = msg.data
+            follower = self.find_follower(msg.sender)
             leader_next_index = len(self.logs)
-            follower = self.find_follower(node_origin)
 
             if accept == "True":
                 if leader_next_index > follower.next_index:
@@ -226,33 +258,34 @@ class Raft:
 
     def log_fail_to_connect(self, node_destiny : NodeInfo, e : Exception):
         self.tcp_logger.save('[FAIL_CONNECT] - ' + node_destiny.name + ';' + str(e))
-                    
-    def send_broadcast(self, msg):
-        nodes : List[NodeInfo] = Network.get_nodes()
-        for node in nodes:
-            if node.name != self.name:  # do not send to myself
-                try:
-                    socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
-                except Exception as e:  # fail to connect
-                    self.log_fail_to_connect(node, e)
-                    continue
-                
-                self.send(socket, msg + ";" + node.name)
+    
+    def send_request_votes(self):        
+        type = "request_vote"
+        sender = self.name
+        leader_term = self.current_term
+        receiver = '' # will be filled by send_broadcast
+        prev_index = len(self.logs) - 1
+        prev_term = self.logs[prev_index].term
+        data = ''
+        data_term = self.current_term
 
-    def send_request_votes(self):
-        # TODO: insert last_log_term_index and last_log_term
-        msg = "request_vote;" + self.name + ";" + str(self.current_term)
+        msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
         self.send_broadcast(msg)
 
-    def send_request_votes_answer(self, socket, voted, node_destiny):
-        if voted:
-            voted = ";true"
-        else:
-            voted = ";false"
+    def send_request_votes_answer(self, socket, vote, node_destiny):
+        if not vote:
             return
 
-        msg = "request_vote_answer;" + self.name + ";"
-        msg += str(self.current_term) + ";" + node_destiny + voted
+        type = "request_vote_answer"
+        sender = self.name
+        leader_term = self.current_term
+        receiver = node_destiny
+        prev_index = len(self.logs) - 1
+        prev_term = self.logs[prev_index].term
+        data = "true"
+        data_term = self.current_term
+
+        msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
         self.send(socket, msg)
 
     def send_append_entries(self, data):
@@ -267,6 +300,12 @@ class Raft:
             original_data = data
 
             for follower in self.followers:
+
+                try:
+                    socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
+                except Exception as e:  # fail to connect
+                    self.log_fail_to_connect(follower.info, e)
+                    continue
                 
                 # follower have delayed logs?
                 if follower.next_index != leader_next_index:
@@ -278,34 +317,49 @@ class Raft:
                     data_term = leader_term
                     prev_index = leader_next_index - 1
 
+                type = 'append_entries'
                 prev_term = self.logs[prev_index].term
+                sender = self.name
+                receiver = follower.info.name
 
-                msg = "append_entries;" + self.name + ';'
-                msg += str(leader_term) + ';' + follower.info.name + ';' + str(prev_index) + ';'
-                msg += str(prev_term) + ';' + data + ';'
-                msg += str(data_term)  # TODO: add commit index
-
-                try:
-                    socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
-                except Exception as e:  # fail to connect
-                    self.log_fail_to_connect(follower.info, e)
-                    continue
-
+                msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
                 self.send(socket, msg)
 
             return True
         else:
             return False
 
-    def send(self, socket, msg):
-        if not self.suspended:
-            self.tcp_logger.save('[SEND] - ' + msg)
-            socket.send(msg)
-
     def send_append_entries_answer(self, socket, accept, node_destiny):
-        msg = "append_entries_answer;" + self.name + ';'
-        msg += str(self.current_term) + ';' + node_destiny + ';' + str(accept)
+        type = "append_entries_answer"
+        sender = self.name
+        leader_term = self.current_term
+        receiver = node_destiny
+        prev_index = len(self.logs) - 1
+        prev_term = self.logs[prev_index].term
+        data = str(accept)
+        data_term = self.current_term
+
+        msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
         self.send(socket, msg)
+    
+    def send_broadcast(self, msg : Message):
+        nodes : List[NodeInfo] = Network.get_nodes()
+        for node in nodes:
+            if node.name != self.name:  # do not send to myself
+                try:
+                    socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
+                except Exception as e:  # fail to connect
+                    self.log_fail_to_connect(node, e)
+                    continue
+                
+                msg.receiver = node.name
+                self.send(socket, msg)
+                
+    def send(self, socket, msg : Message):
+        if not self.suspended:
+            msg_str = msg.to_csv()
+            self.tcp_logger.save('[SEND] - ' + msg_str)
+            socket.send(msg_str)
 
     def update_followers_next_index(self, index):
         for follower in self.followers:
@@ -320,10 +374,9 @@ class Raft:
                 self.followers.append(Follower(node))
 
     def timeout_handle(self):
-
         self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
+        
         if self.sm == "FOLLOWER":
-
             self.voted_for = ''
             self.sm = "CANDIDATE"
 

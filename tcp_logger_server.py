@@ -24,9 +24,9 @@ def get_ms(event_time):
         first_time = event_time
         return 0
 
-def get_message_id(type, origin_name, destiny_name):
+def get_message_index(id):
     for idx, message in enumerate(messages):
-        if message.type == type and message.origin.name == origin_name and message.destiny.name == destiny_name:
+        if message.id == id:
             return idx
     return -1
 
@@ -62,19 +62,20 @@ def parser(data):
         node_origin = time_graph.get_node(node_origin)
         node_destiny = time_graph.get_node(fields_data[0])
         
-        message = Message(node_origin, node_destiny, type, ms, ms+1)
+        message = Message(0, node_origin, node_destiny, type, ms, ms+1)
         time_graph.insert_message(message)
 
     elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name;$prev_index;$prev_term;$data;$data_term
         fields_data = fields[3].split(';')
         
-        type = Message_Types[fields_data[0]]
-        node_origin = time_graph.get_node(fields_data[1])
-        node_destiny = time_graph.get_node(fields_data[3])
+        id = int(fields_data[0])
+        type = Message_Types[fields_data[1]]
+        node_origin = time_graph.get_node(fields_data[2])
+        node_destiny = time_graph.get_node(fields_data[4])
         
-        msg_id = get_message_id(type, node_origin.name, node_destiny.name)
-        if msg_id != -1:
-            message = messages[msg_id]
+        msg_index = get_message_index(id)
+        if msg_index != -1:
+            message = messages[msg_index]
 
             if cmd == 'SEND':
                 message.send_time = ms
@@ -82,12 +83,12 @@ def parser(data):
                 message.receive_time = ms
             
             time_graph.insert_message(message)
-            messages.pop(msg_id)
+            messages.pop(msg_index)
         else:
             if cmd == 'SEND':
-                message = Message(node_origin, node_destiny, type, ms, -1)
+                message = Message(id, node_origin, node_destiny, type, ms, -1)
             elif cmd == 'RECEIVED':
-                message = Message(node_origin, node_destiny, type, -1, ms)
+                message = Message(id, node_origin, node_destiny, type, -1, ms)
             
             messages.append(message)
     
