@@ -46,7 +46,7 @@ def parser(data):
         raft_state = fields[3]
         node = time_graph.get_node(node_origin)
         last_event : Event = node.get_last_event()
-        
+                
         if last_event and last_event.raft_state.name == raft_state:
             node.update_event(last_event, int(ms))
         else:

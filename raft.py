@@ -139,12 +139,14 @@ class Raft:
 
                     self.update_followers_next_index(followers_next_index)
                     
-                    # notify network that i'm the leader
+                    # notify network that NOW i'm the leader
                     if self.sm != "LEADER":
                         self.sm = "LEADER"
                         self.timeout_handle()
 
         elif msg.type == "append_entries":         
+            self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
+            
             leader_term = msg.leader_term
             leader_name = msg.sender
 
