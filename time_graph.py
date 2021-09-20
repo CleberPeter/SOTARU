@@ -77,7 +77,7 @@ class Message:
 
 class Time_Graph:
     def __init__(self):
-        self.clear()
+        self.init_vars()
         
         self.fig = plt.figure()
         self.graph = self.fig.add_subplot(111)
@@ -86,6 +86,10 @@ class Time_Graph:
         self.graph.patch.set_alpha(0.5)
 
     def clear(self):
+        self.plot_clean()
+        self.init_vars()
+        
+    def init_vars(self):
         self.nodes : List[Node] = []
         self.messages : List[Message] = []
         self.removable_list = []
