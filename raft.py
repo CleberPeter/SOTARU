@@ -98,6 +98,8 @@ class Raft:
         return data == ''
 
     def parser(self, socket, data):
+        
+        self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
 
         data_str = data.decode("utf-8")
         self.tcp_logger.save('[RECEIVED] - ' + data_str)
@@ -300,7 +302,6 @@ class Raft:
             original_data = data
 
             for follower in self.followers:
-
                 try:
                     socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
                 except Exception as e:  # fail to connect

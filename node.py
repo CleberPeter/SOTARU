@@ -93,6 +93,7 @@ if __name__ == "__main__":
     node : NodeInfo = Network.get_node_info(my_ip)
     
     if node:
+        sleep(1)
         Node(node, force_leader = False)
     else:
         file_logger = File_Logger('none')

@@ -195,7 +195,7 @@ class Time_Graph:
 
         self.plot_clean()
         self.plot_events()
-        self.plot_messages()
+        # self.plot_messages()
         
         plt.draw()
         plt.pause(0.0001)
@@ -205,4 +205,5 @@ class Time_Graph:
         plt.draw()
 
     def plot_end(self):
+        self.plot_messages()
         plt.show()
