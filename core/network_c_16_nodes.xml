@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<scenario name="/home/cleberpeter/Music/SOTARU/core/network_c.xml">
+<scenario name="/home/cleberpeter/Music/SOTARU/core/network_c_16_nodes.xml">
   <networks>
     <network id="3" name="H1" type="HUB">
       <position x="184" y="176" lat="47.5775668954683" lon="-122.12984264981584" alt="2.0"/>
@@ -188,7 +188,7 @@
     </link>
     <link node1="7" node2="10">
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:04" ip4="10.0.1.10" ip4_mask="24" ip6="2001:0:0:1::10" ip6_mask="64"/>
-      <options delay="100000" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+      <options delay="50000" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
     </link>
     <link node1="7" node2="11">
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:04" ip4="10.0.1.11" ip4_mask="24" ip6="2001:0:0:1::11" ip6_mask="64"/>
