@@ -11,6 +11,7 @@ from threading import Thread
 first_time = 0
 run = True
 messages : List[Message] = []
+core_process = []
 
 # [2021-09-01 23:50:13.446] -> 446
 def get_ms(event_time):
@@ -114,9 +115,17 @@ def thread_check_keyboard():
             else:
                 print('stop first.')
         elif answer == "k":
-            print(core_process.communicate(b'end'))
+            end_core()
         else:
             print('command not recognitzed.')
+
+def start_core():
+    global core_process
+    core_process = subprocess.Popen(["core-python", "deploy_network.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    
+def end_core():
+    global core_process    
+    core_process.communicate(b'end')
 
 if __name__ == "__main__":
 
@@ -128,7 +137,8 @@ if __name__ == "__main__":
     Thread(target = thread_check_keyboard).start()
 
     time_graph.plot_init()
-    core_process = subprocess.Popen(["sudo", "core-python", "deploy_network.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    start_core()
 
     while True:
         if run:
