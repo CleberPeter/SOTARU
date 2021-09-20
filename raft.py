@@ -98,9 +98,6 @@ class Raft:
         return data == ''
 
     def parser(self, socket, data):
-        
-        self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
-
         data_str = data.decode("utf-8")
         self.tcp_logger.save('[RECEIVED] - ' + data_str)
 
@@ -207,6 +204,8 @@ class Raft:
                     follower.next_index += 1
             elif accept == "False" and follower.next_index > 0:
                 follower.next_index -= 1
+
+        self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
 
     def find_follower(self, name):
         for follower in self.followers:
@@ -375,7 +374,7 @@ class Raft:
 
     def timeout_handle(self):
         self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
-        
+
         if self.sm == "FOLLOWER":
             self.voted_for = ''
             self.sm = "CANDIDATE"
@@ -405,3 +404,4 @@ class Raft:
         elif self.sm == "LEADER":
             self.reinit_timer(HEARTBEAT_TIMEOUT)
             self.send_append_entries('')  # empty data -> heartbeat
+        
