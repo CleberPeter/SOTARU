@@ -77,17 +77,20 @@ class Message:
 
 class Time_Graph:
     def __init__(self):
-        self.nodes : List[Node] = []
-        self.messages : List[Message] = []
-        self.removable_list = []
-        self.last_idx_msgs = 0
-        self.last_ms = 0
-
+        self.clear()
+        
         self.fig = plt.figure()
         self.graph = self.fig.add_subplot(111)
         matplotlib.rcParams['figure.raise_window'] = False # disable autofocus on figure
         self.graph.patch.set_facecolor('gray')
         self.graph.patch.set_alpha(0.5)
+
+    def clear(self):
+        self.nodes : List[Node] = []
+        self.messages : List[Message] = []
+        self.removable_list = []
+        self.last_idx_msgs = 0
+        self.last_ms = 0
 
     def insert_node(self, name):
         self.nodes.append(Node(name))

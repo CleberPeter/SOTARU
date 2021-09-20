@@ -12,6 +12,8 @@ first_time = 0
 run = True
 messages : List[Message] = []
 core_process = []
+time_graph = []
+restarting = False
 
 # [2021-09-01 23:50:13.446] -> 446
 def get_ms(event_time):
@@ -34,6 +36,8 @@ def get_message_index(id):
 
 # [2021-09-01 23:50:13.446] - [server] - [2021-09-01 23:50:13.445] - [F3] - [RAFT_SM] - FOLLOWER
 def parser(data):
+    global restarting
+
     fields = data.split(' - ')
     ms = get_ms(fields[0])
     node_origin = fields[1][1:-1]
@@ -56,6 +60,12 @@ def parser(data):
             if not last_event:
                 event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
+        
+        if raft_state == 'LEADER' and not restarting:
+            # this thread don't freeze tcp server and allow
+            # receive the latest messages from core
+            restarting = True
+            Thread(target = restart).start() 
 
     elif cmd == 'FAIL_CONNECT': # $destiny_name;$msg
         fields_data = fields[3].split(';')
@@ -97,8 +107,8 @@ def parser(data):
 def on_receive(self, log):
     log_str = log.decode("utf-8")
     
-    parser(log_str)
     file_logger.save(log_str)
+    parser(log_str)
 
 def thread_check_keyboard():
     global run
@@ -119,27 +129,39 @@ def thread_check_keyboard():
         else:
             print('command not recognitzed.')
 
-def start_core():
-    global core_process
-    core_process = subprocess.Popen(["core-python", "deploy_network.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+def restart():
+    global restarting, first_time 
+
+    print('restarting')
+    end_core()
+
+    sleep(5)
+    first_time = 0
+    time_graph.clear()
+    start_core()
     
+    restarting = False
+
 def end_core():
     global core_process    
     core_process.communicate(b'end')
+    
+def start_core():
+    global core_process
+    core_process = subprocess.Popen(["core-python", "deploy_network.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 if __name__ == "__main__":
 
     file_logger = File_Logger('server', False)
     tcp_logger_server_info = Tcp_Logger_Server_Info()
     tcp_server = Tcp_Server(tcp_logger_server_info.port, on_receive)
-    time_graph = Time_Graph()
     
     Thread(target = thread_check_keyboard).start()
 
-    time_graph.plot_init()
-
+    time_graph = Time_Graph()
     start_core()
-
+    
+    time_graph.plot_init()
     while True:
         if run:
             time_graph.plot()
