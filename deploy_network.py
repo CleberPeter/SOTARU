@@ -8,7 +8,7 @@ startup_service_cmd = "bash start_sotaru_service.sh"
 
 def get_file_content(relative_path):
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, '../' + relative_path)
+    filename = os.path.join(dirname, relative_path)
     
     f = open(filename)
     content = f.read()
@@ -38,15 +38,15 @@ def configure_services(session_id, nodes):
                 file,
                 get_file_content(file),
             )
+def shutdown():
+    print('ending core session ...')
+    core.stop_session(session_id)
+    core.delete_session(session_id)
 
 # required imports
 from time import sleep
 from core.api.grpc import client
 from core.api.grpc.core_pb2 import Node, NodeType, Position, SessionState, LinkOptions
-
-def shutdown():
-    print('shutdown_session')
-    core.stop_session(session_id)
 
 # interface helper
 iface_1_helper = client.InterfaceHelper(ip4_prefix="10.0.0.0/24", ip6_prefix="2001::/64")
@@ -136,10 +136,11 @@ core.add_link(session_id, n3_id, switch2_id, iface1)
 iface1 = iface_2_helper.create_iface(n4_id, 0)
 core.add_link(session_id, n4_id, switch2_id, iface1)
 
-
 # change session state
 core.set_session_state(session_id, SessionState.INSTANTIATION)
-input('press_key_to_end_session')
 
-
-shutdown()
+while(True):
+    cmd = input('Enter "end" to kill core_session: ')
+    if cmd == "end":
+        shutdown()
+        break

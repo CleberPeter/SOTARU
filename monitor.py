@@ -1,3 +1,4 @@
+import subprocess
 from datetime import datetime
 from time import sleep
 from typing import List
@@ -102,7 +103,7 @@ def thread_check_keyboard():
     global run
 
     while True:
-        answer = input("<s:stop|l:limits>: ") ## blocking read
+        answer = input("<s:stop|l:limits|k:kill_core>: ") ## blocking read
         if answer == "s":
             run = False
         elif answer == "l":
@@ -112,6 +113,8 @@ def thread_check_keyboard():
                 time_graph.plot_update_limits(int(limits[0]),int(limits[1]))
             else:
                 print('stop first.')
+        elif answer == "k":
+            print(core_process.communicate(b'end'))
         else:
             print('command not recognitzed.')
 
@@ -125,6 +128,7 @@ if __name__ == "__main__":
     Thread(target = thread_check_keyboard).start()
 
     time_graph.plot_init()
+    core_process = subprocess.Popen(["sudo", "core-python", "deploy_network.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
     while True:
         if run:
