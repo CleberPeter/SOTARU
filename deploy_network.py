@@ -1,4 +1,8 @@
+# required imports
 import os
+from time import sleep
+from core.api.grpc import client
+from core.api.grpc.core_pb2 import Node, NodeType, Position, SessionState, LinkOptions, Interface
 
 raft_files = ["tcp_logger.py", "crypto.py", "tcp_client.py", "network_info.csv", "tcp_server.py"]
 raft_files.extend(["start_sotaru_service.sh", "node.py", "file_logger.py", "logger_server_info.csv"])
@@ -42,11 +46,6 @@ def shutdown():
     print('ending core session ...')
     core.stop_session(session_id)
     core.delete_session(session_id)
-
-# required imports
-from time import sleep
-from core.api.grpc import client
-from core.api.grpc.core_pb2 import Node, NodeType, Position, SessionState, LinkOptions
 
 # interface helper
 iface_1_helper = client.InterfaceHelper(ip4_prefix="10.0.0.0/24", ip6_prefix="2001::/64")
@@ -118,23 +117,31 @@ configure_services(session_id, nodes)
     jitter=0,
 )"""
 
-iface1 = iface_1_helper.create_iface(router_id, 0)
+# iface1 = iface_1_helper.create_iface(router_id, 0)
 #core.add_link(session_id, router_id, switch1_id, iface1, options= options)
-core.add_link(session_id, router_id, switch1_id, iface1)
+iface_data = Interface(id=0, ip4="10.0.0.1", ip4_mask=24, ip6="2001::", ip6_mask=64,)
+core.add_link(session_id, router_id, switch1_id, iface_data)
 
-iface1 = iface_2_helper.create_iface(router_id, 1)
-core.add_link(session_id, router_id, switch2_id, iface1)
+# iface1 = iface_2_helper.create_iface(router_id, 1)
+iface_data = Interface(id=1, ip4="10.0.1.1", ip4_mask=24, ip6="2001::", ip6_mask=64,)
+core.add_link(session_id, router_id, switch2_id, iface_data)
 
 # links nodes to switch
-iface1 = iface_1_helper.create_iface(n1_id, 0)
-core.add_link(session_id, n1_id, switch1_id, iface1)
-iface1 = iface_1_helper.create_iface(n2_id, 0)
-core.add_link(session_id, n2_id, switch1_id, iface1)
 
-iface1 = iface_2_helper.create_iface(n3_id, 0)
-core.add_link(session_id, n3_id, switch2_id, iface1)
-iface1 = iface_2_helper.create_iface(n4_id, 0)
-core.add_link(session_id, n4_id, switch2_id, iface1)
+# iface1 = iface_1_helper.create_iface(n1_id, 0)
+iface_data = Interface(ip4="10.0.0.2", ip4_mask=24, ip6="2001::", ip6_mask=64,)
+core.add_link(session_id, n1_id, switch1_id, iface_data)
+
+# iface1 = iface_1_helper.create_iface(n2_id, 0)
+iface_data = Interface(ip4="10.0.0.3", ip4_mask=24, ip6="2001::", ip6_mask=64,)
+core.add_link(session_id, n2_id, switch1_id, iface_data)
+
+# iface1 = iface_2_helper.create_iface(n3_id, 0)
+iface_data = Interface(ip4="10.0.1.2", ip4_mask=24, ip6="2001::", ip6_mask=64,)
+core.add_link(session_id, n3_id, switch2_id, iface_data)
+# iface1 = iface_2_helper.create_iface(n4_id, 0)
+iface_data = Interface(ip4="10.0.1.3", ip4_mask=24, ip6="2001::", ip6_mask=64,)
+core.add_link(session_id, n4_id, switch2_id, iface_data)
 
 # change session state
 core.set_session_state(session_id, SessionState.INSTANTIATION)

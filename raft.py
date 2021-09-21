@@ -5,7 +5,7 @@ import time
 from threading import Timer
 from random import randint
 from typing import List
-from network import Network, NodeInfo
+from network import ManufacturerNode, Network
 from tcp_server import Tcp_Server
 from tcp_client import Tcp_Client
 from tcp_logger import Tcp_Logger
@@ -19,7 +19,7 @@ DEFAULT_TIMEOUT = 1
 HEARTBEAT_TIMEOUT = 0.5
 
 class Follower:
-    def __init__(self, info : NodeInfo, next_index=0):
+    def __init__(self, info : ManufacturerNode, next_index=0):
         self.info = info
         self.next_index = next_index
 
@@ -67,7 +67,7 @@ class Message:
         return csv
 
 class Raft:
-    def __init__(self, name, tcp_sever_port, tcp_logger : Tcp_Logger, force_leader=False):
+    def __init__(self, name, network : Network, tcp_sever_port, tcp_logger : Tcp_Logger, force_leader=False):
 
         self.current_term = 0
         self.voted_for = ''
@@ -77,6 +77,7 @@ class Raft:
         self.tcp_logger = tcp_logger
         self.force_leader = force_leader
         self.suspended = False
+        self.network = network
 
         self.commit_index = 0  # TODO: maybe persistent ?
         self.logs : List[Log] = []
@@ -123,7 +124,7 @@ class Raft:
             status_vote = msg.data
             if status_vote == "true":
                 self.votes += 1
-                nodes : List[NodeInfo] = Network.get_nodes()
+                nodes : List[ManufacturerNode] = self.network.get_manufacturer_nodes()
 
                 if self.votes > len(nodes)/2:
                     leader_next_index = len(self.logs)
@@ -256,7 +257,7 @@ class Raft:
         self.timer = Timer(time, self.timeout_handle, [])
         self.timer.start()
 
-    def log_fail_to_connect(self, node_destiny : NodeInfo, e : Exception):
+    def log_fail_to_connect(self, node_destiny : ManufacturerNode, e : Exception):
         self.tcp_logger.save('[FAIL_CONNECT] - ' + node_destiny.name + ';' + str(e))
     
     def send_request_votes(self):        
@@ -342,7 +343,7 @@ class Raft:
         self.send(socket, msg)
     
     def send_broadcast(self, msg : Message):
-        nodes : List[NodeInfo] = Network.get_nodes()
+        nodes : List[ManufacturerNode] = self.network.get_manufacturer_nodes()
         for node in nodes:
             if node.name != self.name:  # do not send to myself
                 try:
@@ -367,7 +368,7 @@ class Raft:
     def update_followers_list(self):
         # TODO: make followers list dynamic
         self.followers = []
-        nodes : List[NodeInfo] = Network.get_nodes()
+        nodes : List[ManufacturerNode] = self.network.get_manufacturer_nodes()
         for node in nodes:
             if node.name != self.name:
                 self.followers.append(Follower(node))

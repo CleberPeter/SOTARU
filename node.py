@@ -4,7 +4,7 @@ import crypto
 
 from time import sleep
 from helper import Helper
-from network import Network, NodeInfo
+from network import ManufacturerNode, Network
 from tcp_logger import Tcp_Logger
 from file_logger import File_Logger
 from raft import Raft
@@ -12,13 +12,13 @@ from http_server import HttpServer
 
 class Node:
 
-    def __init__(self, node_info : NodeInfo, force_leader = False):
-        self.node_info = node_info
-        self.tcp_logger = Tcp_Logger(node.name)
-        self.raft = Raft(self.node_info.name, self.node_info.tcp_port, self.tcp_logger, force_leader)
-        self.http_sever = HttpServer(self.node_info.http_port, self.on_http_server_receive)
+    def __init__(self, my_ip, network : Network, force_leader = False):
+        self.node : ManufacturerNode = network.get_manufacturer_node_info(my_ip)
+        self.tcp_logger = Tcp_Logger(self.node.name)
+        self.raft = Raft(self.node.name, network, self.node.tcp_port, self.tcp_logger, force_leader)
+        self.http_sever = HttpServer(self.node.http_port, self.on_http_server_receive)
 
-        start_msg = '[INITIALIZED] - ' + node.get_str_info()
+        start_msg = '[INITIALIZED] - ' + self.node.get_str_info()
         self.tcp_logger.save(start_msg)
     
     def kill(self):
@@ -90,13 +90,6 @@ class Node:
 
 if __name__ == "__main__":
     my_ip = Helper.get_ip()
-    node : NodeInfo = Network.get_node_info(my_ip)
+    network = Network('network_info.csv')
+    Node(my_ip, network, force_leader = False)
     
-    if node:
-        Node(node, force_leader = False)
-    else:
-        file_logger = File_Logger('none')
-        error_msg = "can't find node_ip [" + my_ip + "] on network list."
-        file_logger.save(error_msg)
-        
-        exit(-1)

@@ -61,11 +61,11 @@ def parser(data):
                 event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
         
-        if raft_state == 'LEADER' and not restarting:
+        # if raft_state == 'LEADER' and not restarting:
             # this thread don't freeze tcp server and allow
             # receive the latest messages from core
-            restarting = True
-            Thread(target = restart).start() 
+            # restarting = True
+            # Thread(target = restart).start() 
 
     elif cmd == 'FAIL_CONNECT': # $destiny_name;$msg
         fields_data = fields[3].split(';')
