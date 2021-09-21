@@ -42,8 +42,9 @@ def configure_services(session_id, nodes):
                 file,
                 get_file_content(file),
             )
-def shutdown():
-    print('ending core session ...')
+
+def shutdown_session(session_id):
+    print('ending core session ' + str(session_id))
     core.stop_session(session_id)
     core.delete_session(session_id)
 
@@ -54,6 +55,11 @@ iface_2_helper = client.InterfaceHelper(ip4_prefix="10.0.1.0/24", ip6_prefix="20
 # create grpc client and connect
 core = client.CoreGrpcClient()
 core.connect()
+
+# kill older sessions
+response = core.get_sessions()
+for session in response.sessions:
+    shutdown_session(session.id)
 
 # create session and get id
 response = core.create_session()
@@ -149,5 +155,5 @@ core.set_session_state(session_id, SessionState.INSTANTIATION)
 while(True):
     cmd = input('Enter "end" to kill core_session: ')
     if cmd == "end":
-        shutdown()
+        shutdown_session(session_id)
         break
