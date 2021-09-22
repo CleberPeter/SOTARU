@@ -5,8 +5,12 @@ class ManufacturerNode:
     def __init__(self, name, host, tcp_port, http_port):
         self.name = name
         self.host = host
+        self.id = 0
         self.tcp_port = tcp_port
         self.http_port = http_port
+
+    def set_id(self, id):
+        self.id = id
     
     def get_str_info(self):
         ret = 'name: ' + self.name + ', '
@@ -18,13 +22,21 @@ class ManufacturerNode:
 class SwitchNode:
     def __init__(self, name, host):
         self.name = name
+        self.id = 0
         self.host = host
         self.nodes : List[ManufacturerNode] = []
+
+    def set_id(self, id):
+        self.id = id
 
 class RouterNode:
     def __init__(self, name):
         self.name = name
+        self.id = 0
         self.switchs : List[SwitchNode] = []
+
+    def set_id(self, id):
+        self.id = id
 
 class Network:
     def __init__(self, file_path):
@@ -32,10 +44,11 @@ class Network:
         with open(file_path) as file:
             for line in file:
                 if line[0] == 'R':
-                    name = line
+                    name = line.split('\n')[0]
                     self.routers.append(RouterNode(name))
                 elif line[0] == 'S':
                     (name, host) = line.split(',')
+                    host = host.split('\n')[0]
                     router = self.routers[-1]
                     router.switchs.append(SwitchNode(name, host))
                 elif line[0] == 'F':
