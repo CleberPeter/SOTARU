@@ -93,9 +93,9 @@ for router in network.routers:
 
             nodes_qty = len(switch.nodes)
             if nodes_qty:
-                node_rot_degree_steps = 80/nodes_qty
+                node_rot_degree_steps = 90/nodes_qty
                 for idx, node in enumerate(switch.nodes):
-                    node_rot_degree = (idx*node_rot_degree_steps) + switch_rot_degree - 40
+                    node_rot_degree = (idx*node_rot_degree_steps) + switch_rot_degree - 45
                     x = radius * np.cos(np.deg2rad(node_rot_degree)) + switch_position.x
                     y = radius * np.sin(np.deg2rad(node_rot_degree)) + switch_position.y
                     
