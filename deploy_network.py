@@ -52,10 +52,6 @@ def shutdown_session(session_id):
 
 network = Network('network_info.csv')
 
-# interface helper
-iface_1_helper = client.InterfaceHelper(ip4_prefix="10.0.0.0/24", ip6_prefix="2001::/64")
-iface_2_helper = client.InterfaceHelper(ip4_prefix="10.0.1.0/24", ip6_prefix="2001::/64")
-
 # create grpc client and connect
 core = client.CoreGrpcClient()
 core.connect()
