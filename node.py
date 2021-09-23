@@ -89,7 +89,13 @@ class Node:
         return json.dumps(answer)
 
 if __name__ == "__main__":
-    my_ip = Helper.get_ip()
+    while(True):
+        try:
+            my_ip = Helper.get_ip()
+            break
+        except:
+            sleep(1)
+    
     network = Network('network_info.csv')
     Node(my_ip, network, force_leader = False)
     
