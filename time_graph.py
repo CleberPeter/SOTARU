@@ -145,9 +145,10 @@ class Time_Graph:
         self.last_idx_msgs = idx
 
     def plot_node_name_legend(self):
-        y_pos = np.arange(len(self.nodes))
+        node_names = [node.name for node in reversed(self.nodes)]
+        y_pos = np.arange(len(node_names))
         self.graph.set_yticks(y_pos)
-        self.graph.set_yticklabels([node.name for node in reversed(self.nodes)])
+        self.graph.set_yticklabels(node_names)
         
     def plot_legend(self):
         self.graph.set_xlabel('miliseconds')
@@ -156,7 +157,7 @@ class Time_Graph:
         patches = []
         for raft_state in Raft_States:
             patches.append(mpatches.Patch(label=raft_state.name, color=raft_state.color))
-        leg1 = self.graph.legend(handles = patches)
+        leg1 = self.graph.legend(handles = patches, loc="upper right")
 
         proxies = []
         labels = []
