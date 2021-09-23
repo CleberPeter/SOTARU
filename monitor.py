@@ -57,8 +57,8 @@ def parser(data):
             node.update_event(last_event, int(ms))
         else:
             event_time = int(ms)
-            if not last_event:
-                event_time = 0
+            #if not last_event:
+                #event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
         
         # if raft_state == 'LEADER' and not restarting:
