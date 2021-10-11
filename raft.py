@@ -91,10 +91,10 @@ class Raft:
 
         # self.current_state_db = Current_State_DB(name)
         self.server = Tcp_Server(tcp_sever_port, self.server_on_receive)
-        self.timer : Timer = []
+        self.timer = Timer(DEFAULT_TIMEOUT, self.timeout_handle, [])
         
     def start(self):
-        self.timer = Timer(DEFAULT_TIMEOUT, self.timeout_handle, [])
+        self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
         self.timer.start()
 
     def is_heartbeat(self, data):
