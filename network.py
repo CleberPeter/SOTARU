@@ -68,6 +68,10 @@ class Network:
                     nodes.append(node)
         return nodes
 
+    def get_manufacturer_nodes_len(self):
+        nodes = self.get_manufacturer_nodes()
+        return len(nodes)
+
     def get_manufacturer_node_info(self, internal_ip, external_ip) -> ManufacturerNode:
         nodes = self.get_manufacturer_nodes()
         for node in nodes:

@@ -1,8 +1,11 @@
 import subprocess
+import requests
 from datetime import datetime
 from time import sleep
 from typing import List
+from helper import Helper
 from tcp_server import Tcp_Server
+from network import Network
 from tcp_logger_server_info import Tcp_Logger_Server_Info
 from file_logger import File_Logger
 from time_graph import Event, Message, Message_Types, Raft_States, Time_Graph
@@ -50,6 +53,12 @@ def parser(data):
         
         time_graph.create_node(node_origin, external_ip)
 
+        if network.get_manufacturer_nodes_len() == time_graph.get_nodes_len():
+            nodes = time_graph.get_nodes()
+            for node in nodes:
+                pload = {'action':'start'}
+                requests.post('http://' +  node.external_ip + ":8080", data = pload)
+                
     elif cmd == 'KILL' or cmd == 'RESET' or cmd == 'SUSPEND':
         node = time_graph.get_node(node_origin)
         event_time = int(ms)
@@ -162,6 +171,7 @@ if __name__ == "__main__":
     file_logger = File_Logger('server', False)
     tcp_logger_server_info = Tcp_Logger_Server_Info()
     tcp_server = Tcp_Server(tcp_logger_server_info.port, on_receive)
+    network = Network('network_info.csv')
     
     Thread(target = thread_check_keyboard).start()
 

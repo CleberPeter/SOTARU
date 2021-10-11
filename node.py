@@ -46,6 +46,9 @@ class Node:
         sleep(int(time))
         self.raft.resume()
 
+    def start(self):
+        self.raft.start()
+
     # TODO: implement unidirectional failures
     def add_author(self, author_data_json, answer):
 
@@ -64,7 +67,9 @@ class Node:
         answer = {}
         status = True
         if keys[0] == "action":
-            if values[0] == "kill":
+            if values[0] == "start":
+                self.start()
+            elif values[0] == "kill":
                 self.kill()
             elif values[0] == "reset":
                 time = values[1]

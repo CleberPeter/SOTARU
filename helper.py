@@ -1,6 +1,8 @@
 import socket
 import netifaces as ni
+import time
 from datetime import datetime
+
 
 class Helper:
     def get_internal_ip():
@@ -20,3 +22,5 @@ class Helper:
     def get_datetime() -> str: 
         return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
+    def get_timestamp() -> str: 
+        return time.time()

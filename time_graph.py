@@ -97,6 +97,12 @@ class Time_Graph:
         self.last_idx_msgs = 0
         self.last_ms = 0
 
+    def get_nodes(self) -> List[Node]:
+        return self.nodes
+
+    def get_nodes_len(self):
+        return len(self.get_nodes())
+        
     def create_node(self, name, external_ip):
         self.nodes.append(Node(name, external_ip))
 
