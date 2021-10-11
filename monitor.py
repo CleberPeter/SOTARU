@@ -53,6 +53,9 @@ def parser(data):
         
         time_graph.create_node(node_origin, external_ip)
 
+        node = time_graph.get_node(node_origin)
+        node.insert_event(Event(int(ms), 0, Raft_States[cmd]))
+
         if network.get_manufacturer_nodes_len() == time_graph.get_nodes_len():
             nodes = time_graph.get_nodes()
             for node in nodes:
@@ -74,14 +77,14 @@ def parser(data):
         else:
             event_time = int(ms)
             #if not last_event:
-                #event_time = 0
+            #    event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
         
-        # if raft_state == 'LEADER' and not restarting:
+        #if raft_state == 'LEADER' and not restarting:
             # this thread don't freeze tcp server and allow
             # receive the latest messages from core
-            # restarting = True
-            # Thread(target = restart).start() 
+            #restarting = True
+            #Thread(target = restart).start() 
 
     elif cmd == 'FAIL_CONNECT': # $destiny_name;$msg
         fields_data = fields[3].split(';')

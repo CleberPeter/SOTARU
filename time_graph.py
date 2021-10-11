@@ -15,6 +15,7 @@ class Message_Types(Enum):
     fail_connect = 5
 
 class Raft_States(Enum):
+    INITIALIZED = 0, 'purple'
     FOLLOWER = 1, 'navy'
     CANDIDATE = 2, 'green'
     LEADER = 3, 'red'
