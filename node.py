@@ -12,8 +12,8 @@ from http_server import HttpServer
 
 class Node:
 
-    def __init__(self, my_ip, network : Network, force_leader = False):
-        self.node : ManufacturerNode = network.get_manufacturer_node_info(my_ip)
+    def __init__(self, internal_ip, external_ip, network : Network, force_leader = False):
+        self.node : ManufacturerNode = network.get_manufacturer_node_info(internal_ip, external_ip)
         self.tcp_logger = Tcp_Logger(self.node.name)
         self.raft = Raft(self.node.name, network, self.node.tcp_port, self.tcp_logger, force_leader)
         self.http_sever = HttpServer(self.node.http_port, self.on_http_server_receive)
@@ -91,11 +91,12 @@ class Node:
 if __name__ == "__main__":
     while(True):
         try:
-            my_ip = Helper.get_ip()
+            internal_ip = Helper.get_internal_ip()
+            external_ip = Helper.get_external_ip()
             break
         except:
             sleep(1)
     
     network = Network('network_info.csv')
-    Node(my_ip, network, force_leader = False)
+    Node(internal_ip, external_ip, network, force_leader = False)
     

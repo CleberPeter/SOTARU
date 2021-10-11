@@ -43,8 +43,9 @@ class Event:
         self.raft_state = raft_state
 
 class Node:
-    def __init__(self, name):
+    def __init__(self, name, external_ip):
         self.name = name
+        self.external_ip = external_ip
         self.events : List[Event] = []
         self.y_pos = 0
 
@@ -96,16 +97,15 @@ class Time_Graph:
         self.last_idx_msgs = 0
         self.last_ms = 0
 
-    def insert_node(self, name):
-        self.nodes.append(Node(name))
+    def create_node(self, name, external_ip):
+        self.nodes.append(Node(name, external_ip))
 
     def get_node(self, name):
         for node in self.nodes:
             if node.name == name:
                 return node
 
-        self.insert_node(name)
-        return self.get_node(name)
+        return None
 
     def has_node(self, name):
         for node in self.nodes:

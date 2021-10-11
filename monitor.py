@@ -43,7 +43,14 @@ def parser(data):
     node_origin = fields[1][1:-1]
     cmd = fields[2][1:-1]
     
-    if cmd == 'KILL' or cmd == 'RESET' or cmd == 'SUSPEND':
+    if cmd == 'INITIALIZED': # name: F2, host: 10.0.0.3, external_ip: 172.16.0.4, tcp_port: 5555, http_port: 8080
+        fields_data = fields[3].split(',')
+        external_ip_fields = fields_data[2].split(':')
+        external_ip = external_ip_fields[1][1:]
+        
+        time_graph.create_node(node_origin, external_ip)
+
+    elif cmd == 'KILL' or cmd == 'RESET' or cmd == 'SUSPEND':
         node = time_graph.get_node(node_origin)
         event_time = int(ms)
         node.insert_event(Event(int(event_time), 0, Raft_States.OFFLINE))

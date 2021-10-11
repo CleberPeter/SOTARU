@@ -8,6 +8,7 @@ class ManufacturerNode:
         self.id = 0
         self.tcp_port = tcp_port
         self.http_port = http_port
+        self.external_ip = ''
 
     def set_id(self, id):
         self.id = id
@@ -15,6 +16,7 @@ class ManufacturerNode:
     def get_str_info(self):
         ret = 'name: ' + self.name + ', '
         ret += 'host: ' + self.host + ', '
+        ret += 'external_ip: ' + self.external_ip + ', '
         ret += 'tcp_port: ' + str(self.tcp_port) + ', '
         ret += 'http_port: ' + str(self.http_port)
         return ret
@@ -66,9 +68,10 @@ class Network:
                     nodes.append(node)
         return nodes
 
-    def get_manufacturer_node_info(self, ip) -> ManufacturerNode:
+    def get_manufacturer_node_info(self, internal_ip, external_ip) -> ManufacturerNode:
         nodes = self.get_manufacturer_nodes()
         for node in nodes:
-            if node.host == ip:
+            if node.host == internal_ip:
+                node.external_ip = external_ip
                 return node
         return None
