@@ -108,24 +108,27 @@ for router in network.routers:
 configure_services(session_id, node_ids)
 
 # link configs
-"""options = LinkOptions(
+options = LinkOptions(
     bandwidth=0,
-    delay=5000,
+    delay=50000,
     dup=0,
     loss=0,
     jitter=0,
-)"""
+)
 
 # link switches to routers
 for router in network.routers:
-    for idx, switch in enumerate(router.switchs):
-        iface_data = Interface(id=idx, ip4=switch.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
+    for router_idx, switch in enumerate(router.switchs):
+        iface_data = Interface(id=router_idx, ip4=switch.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
         core.add_link(session_id, router.id, switch.id, iface_data)
 
         # link nodes to switches
-        for node in switch.nodes:
+        for node_idx,node in enumerate(switch.nodes):
             iface_data = Interface(ip4=node.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
-            core.add_link(session_id, node.id, switch.id, iface_data)
+            if not router_idx and node_idx == 6:
+                core.add_link(session_id, node.id, switch.id, iface_data, options=options)
+            else:
+                core.add_link(session_id, node.id, switch.id, iface_data)
 
 # change session state
 core.set_session_state(session_id, SessionState.INSTANTIATION)

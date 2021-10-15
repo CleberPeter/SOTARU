@@ -9,6 +9,8 @@ from network import ManufacturerNode, Network
 from tcp_server import Tcp_Server
 from tcp_client import Tcp_Client
 from tcp_logger import Tcp_Logger
+from threading import Thread
+from copy import deepcopy
 # from current_state_db import Current_State_DB
 
 # ms
@@ -77,6 +79,7 @@ class Raft:
         self.tcp_logger = tcp_logger
         self.force_leader = force_leader
         self.suspended = False
+        self.requesting_votes = [False]
         self.network = network
 
         self.commit_index = 0  # TODO: maybe persistent ?
@@ -143,6 +146,7 @@ class Raft:
                     
                     # notify network that NOW i'm the leader
                     if self.sm != "LEADER":
+                        self.requesting_votes[0] = False
                         self.sm = "LEADER"
                         self.timeout_handle()
 
@@ -271,9 +275,10 @@ class Raft:
         prev_term = self.logs[prev_index].term
         data = ''
         data_term = self.current_term
+        self.requesting_votes[0] = True
 
         msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
-        self.send_broadcast(msg)
+        self.send_broadcast(msg, self.requesting_votes)
 
     def send_request_votes_answer(self, socket, vote, node_destiny):
         if not vote:
@@ -303,12 +308,6 @@ class Raft:
             original_data = data
 
             for follower in self.followers:
-                try:
-                    socket = Tcp_Client(follower.info.host, follower.info.tcp_port, self.client_on_receive)
-                except Exception as e:  # fail to connect
-                    self.log_fail_to_connect(follower.info, e)
-                    continue
-                
                 # follower have delayed logs?
                 if follower.next_index != leader_next_index:
                     data = self.logs[follower.next_index].data
@@ -325,7 +324,7 @@ class Raft:
                 receiver = follower.info.name
 
                 msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
-                self.send(socket, msg)
+                Thread(target = self.send_to_node, args=(follower.info, msg, [1])).start()
 
             return True
         else:
@@ -344,25 +343,29 @@ class Raft:
         msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
         self.send(socket, msg)
     
-    def send_broadcast(self, msg : Message):
+    def send_broadcast(self, msg : Message, flux_control : list):
         nodes : List[ManufacturerNode] = self.network.get_manufacturer_nodes()
         for node in nodes:
             if node.name != self.name:  # do not send to myself
-                try:
-                    socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
-                except Exception as e:  # fail to connect
-                    self.log_fail_to_connect(node, e)
-                    continue
-                
                 msg.receiver = node.name
-                self.send(socket, msg)
+                Thread(target = self.send_to_node, args=(node, deepcopy(msg), flux_control)).start()
                 
+    def send_to_node(self, node : ManufacturerNode, msg : Message, flux_control : list):
+        if not self.suspended:
+            try:
+                socket = Tcp_Client(node.host, node.tcp_port, self.client_on_receive)
+                if flux_control[0]:
+                    self.send(socket, msg)
+            except Exception as e:  # fail to connect
+                self.log_fail_to_connect(node, e)
+
     def send(self, socket, msg : Message):
         if not self.suspended:
             msg_str = msg.to_csv()
             self.tcp_logger.save('[SEND] - ' + msg_str)
-            socket.send(msg_str)
 
+            socket.send(msg_str)
+                
     def update_followers_next_index(self, index):
         for follower in self.followers:
             follower.next_index = index
