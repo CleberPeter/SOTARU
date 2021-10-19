@@ -19,17 +19,25 @@ time_graph = []
 restarting = False
 
 # [2021-09-01 23:50:13.446] -> 446
-def get_ms(event_time):
+def get_ms(time_field):
     global first_time
 
-    event_time = event_time[1:-1]
-    event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
+    event_time = parse_time(time_field)
     if first_time:
         diff_time = event_time - first_time        
         return diff_time.seconds*1e3 + diff_time.microseconds / 1e3
     else:
-        first_time = event_time
+        set_time(time_field)
         return 0
+
+def parse_time(time_field):
+    event_time = time_field[1:-1]
+    event_time = datetime.strptime(event_time, "%Y-%m-%d %H:%M:%S.%f")
+    return event_time
+
+def set_time(time_field):
+    global first_time
+    first_time = parse_time(time_field)
 
 def get_message_index(id):
     for idx, message in enumerate(messages):
@@ -39,7 +47,7 @@ def get_message_index(id):
 
 # [2021-09-01 23:50:13.446] - [server] - [2021-09-01 23:50:13.445] - [F3] - [RAFT_SM] - FOLLOWER
 def parser(data):
-    global restarting
+    global restarting, first_time
 
     fields = data.split(' - ')
     ms = get_ms(fields[0])
@@ -53,12 +61,13 @@ def parser(data):
         
         time_graph.create_node(node_origin, external_ip)
 
-        node = time_graph.get_node(node_origin)
-        node.insert_event(Event(int(ms), 0, Raft_States[cmd]))
+        #node = time_graph.get_node(node_origin)
+        #node.insert_event(Event(int(ms), 0, Raft_States[cmd]))
 
         if network.get_manufacturer_nodes_len() == time_graph.get_nodes_len():
             nodes = time_graph.get_nodes()
             for node in nodes:
+                set_time(fields[0])
                 pload = {'action':'start'}
                 requests.post('http://' +  node.external_ip + ":8080", data = pload)
                 
@@ -80,11 +89,17 @@ def parser(data):
             #    event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
         
-        #if raft_state == 'LEADER' and not restarting:
+        if raft_state == 'LEADER' and not restarting:
             # this thread don't freeze tcp server and allow
             # receive the latest messages from core
-            #restarting = True
-            #Thread(target = restart).start() 
+            print('leader: ' + node_origin + ", time: " + str(ms))
+            restarting = True
+            save_fig = False
+
+            if ms > 5000:
+                save_fig = True
+
+            Thread(target = restart, args=(save_fig,)).start() 
 
     elif cmd == 'FAIL_CONNECT': # $destiny_name;$msg
         fields_data = fields[3].split(';')
@@ -148,14 +163,17 @@ def thread_check_keyboard():
         else:
             print('command not recognitzed.')
 
-def restart():
+def restart(save_fig):
     global restarting, first_time 
 
-    print('restarting')
     end_core()
 
     sleep(5)
     first_time = 0
+
+    if save_fig:
+        time_graph.save_fig()
+
     time_graph.clear()
     start_core()
     
@@ -182,6 +200,7 @@ if __name__ == "__main__":
     start_core()
     
     time_graph.plot_init()
+    
     while True:
         if run:
             time_graph.plot()

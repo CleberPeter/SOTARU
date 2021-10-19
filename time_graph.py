@@ -15,7 +15,7 @@ class Message_Types(Enum):
     fail_connect = 5
 
 class Raft_States(Enum):
-    INITIALIZED = 0, 'purple'
+    #INITIALIZED = 0, 'purple'
     FOLLOWER = 1, 'navy'
     CANDIDATE = 2, 'green'
     LEADER = 3, 'red'
@@ -86,6 +86,7 @@ class Time_Graph:
         matplotlib.rcParams['figure.raise_window'] = False # disable autofocus on figure
         self.graph.patch.set_facecolor('gray')
         self.graph.patch.set_alpha(0.5)
+        self.figs_counter = 0
 
     def clear(self):
         self.plot_clean()
@@ -218,6 +219,14 @@ class Time_Graph:
     def plot_update_limits(self, inf_limit, sup_limit):
         self.plot_adjust_limits(inf_limit, sup_limit)
         plt.draw()
+
+    def save_fig(self):
+        self.plot_update_limits(0, self.last_ms)
+
+        fig_title = 'fig_' + str(self.figs_counter) + '.png'
+        self.figs_counter += 1
+        
+        plt.savefig(fig_title, dpi=500)
 
     def plot_end(self):
         self.plot_messages()
