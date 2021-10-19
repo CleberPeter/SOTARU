@@ -82,7 +82,6 @@ class Raft:
         self.requesting_votes = [False]
         self.network = network
 
-        self.commit_index = 0  # TODO: maybe persistent ?
         self.logs : List[Log] = []
         self.followers : List[Follower] = []
 
@@ -103,6 +102,12 @@ class Raft:
     def is_heartbeat(self, data):
         return data == ''
 
+    def stop_votes_request(self):
+        self.requesting_votes[0] = False
+    
+    def start_votes_request(self):
+        self.requesting_votes[0] = True
+
     def parser(self, socket, data):
         data_str = data.decode("utf-8")
         self.tcp_logger.save('[RECEIVED] - ' + data_str)
@@ -112,6 +117,9 @@ class Raft:
         if msg.type == "request_vote":
             leader_term = msg.leader_term
             leader_name = msg.sender
+            
+            # msg.prev_index
+            # len(self.logs)
 
             if leader_term > self.current_term:
                 # TODO: or (check log index to)
@@ -120,6 +128,7 @@ class Raft:
                     self.voted_for = leader_name
                     self.sm = "FOLLOWER"
                     voted = True
+                    self.stop_votes_request()
             else:
                 voted = False
 
@@ -146,8 +155,8 @@ class Raft:
                     
                     # notify network that NOW i'm the leader
                     if self.sm != "LEADER":
-                        self.requesting_votes[0] = False
                         self.sm = "LEADER"
+                        self.stop_votes_request()
                         self.timeout_handle()
 
         elif msg.type == "append_entries":         
@@ -275,7 +284,7 @@ class Raft:
         prev_term = self.logs[prev_index].term
         data = ''
         data_term = self.current_term
-        self.requesting_votes[0] = True
+        self.start_votes_request()
 
         msg = Message(type, sender, leader_term, receiver, prev_index, prev_term, data, data_term)
         self.send_broadcast(msg, self.requesting_votes)
