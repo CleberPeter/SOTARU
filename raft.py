@@ -166,7 +166,7 @@ class Raft:
             accept = False
             next_index = len(self.logs)
 
-            if leader_term >= self.current_term:
+            if leader_term >= self.current_term or self.voted_for == '':
                 leader_prev_index = msg.prev_index
                 leader_prev_term = msg.prev_term
 
@@ -200,7 +200,7 @@ class Raft:
                     self.current_term = leader_term
                     self.voted_for = leader_name
                     self.sm = "FOLLOWER"
-
+                    self.stop_votes_request()
                     accept = True
 
                 self.send_append_entries_answer(socket, accept, leader_name)

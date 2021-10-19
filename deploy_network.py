@@ -110,7 +110,7 @@ configure_services(session_id, node_ids)
 # link configs
 options = LinkOptions(
     bandwidth=0,
-    delay=50000,
+    delay=400000,
     dup=0,
     loss=0,
     jitter=0,
