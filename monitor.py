@@ -45,6 +45,11 @@ def get_message_index(id):
             return idx
     return -1
 
+def save_log(str):
+    file = open('ideal_network.txt', 'a')
+    file.write(str + '\n')
+    file.close()
+
 # [2021-09-01 23:50:13.446] - [server] - [2021-09-01 23:50:13.445] - [F3] - [RAFT_SM] - FOLLOWER
 def parser(data):
     global restarting, first_time
@@ -92,9 +97,9 @@ def parser(data):
         if raft_state == 'LEADER' and not restarting:
             # this thread don't freeze tcp server and allow
             # receive the latest messages from core
-            print('leader: ' + node_origin + ", time: " + str(ms))
             restarting = True
             save_fig = False
+            save_log('leader: ' + node_origin + ", time: " + str(ms))
 
             if ms > 5000:
                 save_fig = True
