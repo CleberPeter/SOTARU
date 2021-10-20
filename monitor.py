@@ -99,10 +99,12 @@ def parser(data):
             # receive the latest messages from core
             restarting = True
             save_fig = False
-            save_log('leader: ' + node_origin + ", time: " + str(ms))
+            log_str = 'leader: ' + node_origin + ", time: " + str(ms)
+            print(log_str)
+            save_log(log_str)
 
             if ms > 5000:
-                save_fig = True
+                save_fig = False #True
 
             Thread(target = restart, args=(save_fig,)).start() 
 
@@ -205,7 +207,7 @@ if __name__ == "__main__":
     start_core()
     
     time_graph.plot_init()
-    
+    """
     while True:
         if run:
             time_graph.plot()
@@ -214,3 +216,4 @@ if __name__ == "__main__":
             break
 
         sleep(1)
+    """
