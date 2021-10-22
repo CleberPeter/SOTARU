@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+from pygooglechart import PieChart3D
 
 leaders = []
 times = []
@@ -21,10 +22,12 @@ with open('ideal_network.txt') as file:
         time_field = fields[1]
 
         time = float(time_field.split(':')[1][1:-1])
-
+        
         if time < 9000:
-            leaders.append(leader_field.split(':')[1][1:])
+            leader = leader_field.split(':')[1][1:]
+            leaders.append(int(leader[1:]))
             times.append(time)
+
             if time >= 1000 and time <= 2000:
                 data_1_2.append(time)
             elif time >= 2000 and time <= 3000:
@@ -43,36 +46,63 @@ with open('ideal_network.txt') as file:
                 data_8_9.append(time)
 
 sum_elections = len(data_1_2) + len(data_2_3) + len(data_3_4) + len(data_4_5) + len(data_5_6) + len(data_6_7) + len(data_7_8) + len(data_8_9)
-print("1_2: ", str(100*len(data_1_2)/sum_elections))
-print("2_3: ", str(100*len(data_2_3)/sum_elections))
-print("3_4: ", str(100*len(data_3_4)/sum_elections))
-print("4_5: ", str(100*len(data_4_5)/sum_elections))
-print("5_6: ", str(100*len(data_5_6)/sum_elections))
-print("6_7: ", str(100*len(data_6_7)/sum_elections))
-print("7_8: ", str(100*len(data_7_8)/sum_elections))
+len_data_1_2 = 100*len(data_1_2)/sum_elections
+len_data_2_3 = 100*len(data_2_3)/sum_elections
+len_data_3_4 = 100*len(data_3_4)/sum_elections
+len_data_4_5 = 100*len(data_4_5)/sum_elections
+len_data_5_6 = 100*len(data_5_6)/sum_elections
+len_data_6_7 = 100*len(data_6_7)/sum_elections
+len_data_7_8 = 100*len(data_7_8)/sum_elections
 
 data = times
 
-# Plot histogram of all data.
-plt.figure(1)
-plt.hist(data, bins=500, density=True, stacked=True)
+##############################################
+"""plt.figure(1)
 
-# Fit a normal distribution to the data:
+plt.ylabel('frequency')
+plt.xlabel('miliseconds')
+plt.hist(data, bins=500)"""
+
+##############################################
 plt.figure(2)
 
 mu, std = norm.fit(data_1_2)
-data_1_2 = np.random.normal(mu, std, 1000)
+data = np.random.normal(mu, std, 1000)
 
-plt.hist(data_1_2, bins=25, density=True, stacked=True, alpha=0.6)
+plt.hist(data, bins=25, density=True, stacked=True, alpha=0.6)
 
-# Plot the PDF.
 xmin, xmax = plt.xlim()
 x = np.linspace(xmin, xmax, 100)
 p = norm.pdf(x, mu, std)
 
 plt.plot(x, p, 'k', linewidth=2)
 
-title = "Fit results: mu = %.2f,  std = %.2f" % (mu, std)
+title = "avg = %.2fs,  std = %.2fs" % (mu, std)
+plt.xlabel('miliseconds')
 plt.title(title)
+
+##############################################
+"""labels = ['1 Votação', '2 Votações', '3 Votações', '4 Votações', '5 Votações', '6 Votações', '7 Votações']
+sizes = [len_data_1_2, len_data_2_3, len_data_3_4, len_data_4_5, len_data_5_6, len_data_6_7, len_data_7_8]
+
+print(sizes)"""
+
+
+##############################################
+"""plt.figure(4)
+plt.xlim([1, 32])
+bins = np.arange(1, 32, 1) # fixed bin size
+plt.hist(leaders, bins=bins)
+"""
+
+##############################################
+"""plt.figure(5)
+plt.xlim([1, 32])
+data = np.random.randint(1, 33, 1000)
+bins = np.arange(1, 34, 1) # fixed bin size
+plt.hist(data, bins=bins)
+plt.xlabel('server')
+plt.ylabel('frequency')
+"""
 
 plt.show()
