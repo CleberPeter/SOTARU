@@ -94,6 +94,7 @@ def parser(data):
             #    event_time = 0
             node.insert_event(Event(int(event_time), 0, Raft_States[raft_state]))
         
+        """
         if raft_state == 'LEADER' and not restarting:
             # this thread don't freeze tcp server and allow
             # receive the latest messages from core
@@ -107,6 +108,7 @@ def parser(data):
                 save_fig = False #True
 
             Thread(target = restart, args=(save_fig,)).start() 
+        """
 
     elif cmd == 'FAIL_CONNECT': # $destiny_name;$msg
         fields_data = fields[3].split(';')
@@ -207,7 +209,7 @@ if __name__ == "__main__":
     start_core()
     
     time_graph.plot_init()
-    """
+    
     while True:
         if run:
             time_graph.plot()
@@ -216,4 +218,4 @@ if __name__ == "__main__":
             break
 
         sleep(1)
-    """
+    

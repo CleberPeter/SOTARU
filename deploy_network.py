@@ -118,15 +118,15 @@ for i in range(4):
 for router in network.routers:
     for router_idx, switch in enumerate(router.switchs):
         iface_data = Interface(id=router_idx, ip4=switch.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
-        # core.add_link(session_id, router.id, switch.id, iface_data, options=link_configs[router_idx])
-        core.add_link(session_id, router.id, switch.id, iface_data)
+        core.add_link(session_id, router.id, switch.id, iface_data, options=link_configs[router_idx])
+        # core.add_link(session_id, router.id, switch.id, iface_data)
 
         # link nodes to switches
         for node_idx,node in enumerate(switch.nodes):
             option = LinkOptions(bandwidth=0, delay=int(node_idx*10e3), dup=0, loss=0, jitter=0,)
             iface_data = Interface(ip4=node.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
-            # core.add_link(session_id, node.id, switch.id, iface_data, options=option)
-            core.add_link(session_id, node.id, switch.id, iface_data)
+            core.add_link(session_id, node.id, switch.id, iface_data, options=option)
+            # core.add_link(session_id, node.id, switch.id, iface_data)
 
 # change session state
 core.set_session_state(session_id, SessionState.INSTANTIATION)

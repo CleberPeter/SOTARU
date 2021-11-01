@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-from pygooglechart import PieChart3D
+import scipy.stats as ss
 
 leaders = []
 times = []
@@ -64,7 +64,7 @@ plt.xlabel('miliseconds')
 plt.hist(data, bins=500)"""
 
 ##############################################
-plt.figure(2)
+"""plt.figure(2)
 
 mu, std = norm.fit(data_1_2)
 data = np.random.normal(mu, std, 1000)
@@ -79,7 +79,7 @@ plt.plot(x, p, 'k', linewidth=2)
 
 title = "avg = %.2fs,  std = %.2fs" % (mu, std)
 plt.xlabel('miliseconds')
-plt.title(title)
+plt.title(title)"""
 
 ##############################################
 """labels = ['1 Votação', '2 Votações', '3 Votações', '4 Votações', '5 Votações', '6 Votações', '7 Votações']
@@ -92,9 +92,14 @@ print(sizes)"""
 """plt.figure(4)
 plt.xlim([1, 32])
 bins = np.arange(1, 32, 1) # fixed bin size
-plt.hist(leaders, bins=bins)
-"""
+plt.xlabel('server')
+plt.ylabel('frequency')
+out = plt.hist(leaders, bins=bins)
 
+x = np.linspace(0, 32, 1000)
+y = 145*np.exp(-0.15*x)/np.exp(-0.15)
+print(y)
+plt.plot(x,y)"""
 ##############################################
 """plt.figure(5)
 plt.xlim([1, 32])
@@ -106,3 +111,13 @@ plt.ylabel('frequency')
 """
 
 plt.show()
+
+latency = 0
+
+for i in range(4):
+    for j in range(8):
+        print(i*8 + j + 1)
+        print((i*100) + (j*10))
+        latency = latency + (i*100) + (j*10)
+
+print(latency/32)

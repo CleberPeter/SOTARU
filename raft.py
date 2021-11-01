@@ -259,7 +259,9 @@ class Raft:
 
     def server_on_receive(self, client, data):
         if not self.suspended:
-            self.reinit_timer()
+            if not self.i_am_leader():
+                self.reinit_timer()
+            
             self.parser(client, data)
 
     def client_on_receive(self, server, data):
