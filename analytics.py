@@ -111,13 +111,3 @@ plt.ylabel('frequency')
 """
 
 plt.show()
-
-latency = 0
-
-for i in range(4):
-    for j in range(8):
-        print(i*8 + j + 1)
-        print((i*100) + (j*10))
-        latency = latency + (i*100) + (j*10)
-
-print(latency/32)

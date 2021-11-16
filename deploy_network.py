@@ -6,11 +6,14 @@ from time import sleep
 from core.api.grpc import client
 from core.api.grpc.core_pb2 import Node, NodeType, Position, SessionState, LinkOptions, Interface
 
-raft_files = ["tcp_logger.py", "crypto.py", "tcp_client.py", "network_info.csv", "tcp_server.py"]
-raft_files.extend(["start_sotaru_service.sh", "node.py", "file_logger.py", "logger_server_info.csv"])
+raft_files = ["tcp_logger.py", "crypto.py", "tcp_client.py", "network_info.csv", "tcp_server.py", "start_client_service.sh"]
+raft_files.extend(["start_sotaru_service.sh", "node.py", "file_logger.py", "logger_server_info.csv", "client.py"])
 raft_files.extend(["network.py", "raft.py", "tcp_logger_server_info.py", "helper.py", "http_server.py", "logger.py"])
+
 service_name = "UserDefined"
-startup_service_cmd = "bash start_sotaru_service.sh"
+
+startup_node_service_cmd = "bash start_sotaru_service.sh"
+startup_client_service_cmd = "bash start_client_service.sh"
 
 def get_file_content(relative_path):
     dirname = os.path.dirname(__file__)
@@ -22,7 +25,7 @@ def get_file_content(relative_path):
     f.close()
     return str(content)
 
-def configure_services(session_id, nodes):
+def configure_services(session_id, nodes, startup_cmd):
     
     for node in nodes:
         core.set_node_service(
@@ -31,7 +34,7 @@ def configure_services(session_id, nodes):
             service_name,
             files = raft_files,
             directories=[],
-            startup=[startup_service_cmd],
+            startup=[startup_cmd],
             validate=[],
             shutdown=[],
         )
@@ -72,6 +75,7 @@ core.set_session_state(session_id, SessionState.CONFIGURATION)
 radius = 150
 center = Position(x=500, y=350)
 node_ids = []
+client_ids = []
 for router in network.routers:
     router_position = center
     core_router = Node(type=NodeType.DEFAULT, position=router_position, model="router", name=router.name)
@@ -81,8 +85,8 @@ for router in network.routers:
     switchs_qty = len(router.switchs)
     if switchs_qty:
         switch_rot_degree_steps = 360/switchs_qty
-        for idx, switch in enumerate(router.switchs):
-            switch_rot_degree = idx*switch_rot_degree_steps
+        for s_id, switch in enumerate(router.switchs):
+            switch_rot_degree = s_id*switch_rot_degree_steps
             x = radius * np.cos(np.deg2rad(switch_rot_degree)) + center.x
             y = radius * np.sin(np.deg2rad(switch_rot_degree)) + center.y
             
@@ -94,8 +98,8 @@ for router in network.routers:
             nodes_qty = len(switch.nodes)
             if nodes_qty:
                 node_rot_degree_steps = 90/nodes_qty
-                for idx, node in enumerate(switch.nodes):
-                    node_rot_degree = (idx*node_rot_degree_steps) + switch_rot_degree - 45
+                for n_id, node in enumerate(switch.nodes):
+                    node_rot_degree = (n_id*node_rot_degree_steps) + switch_rot_degree - 45
                     x = radius * np.cos(np.deg2rad(node_rot_degree)) + switch_position.x
                     y = radius * np.sin(np.deg2rad(node_rot_degree)) + switch_position.y
                     
@@ -104,8 +108,23 @@ for router in network.routers:
                     response = core.add_node(session_id, core_node)
                     node.set_id(response.node_id)
                     node_ids.append(response.node_id)
-
-configure_services(session_id, node_ids)
+                    
+                    clients_qty = len(node.clients)
+                    if clients_qty:
+                        client_rot_degree_steps = 90/clients_qty
+                        for c_id, client in enumerate(node.clients):
+                            client_rot_degree = (c_id*client_rot_degree_steps) + node_rot_degree
+                            x = radius/2 * np.cos(np.deg2rad(client_rot_degree)) + node_position.x
+                            y = radius/2 * np.sin(np.deg2rad(client_rot_degree)) + node_position.y
+                            
+                            client_position = Position(x=x, y=y)
+                            core_client = Node(type=NodeType.DEFAULT, position=client_position, model="PC", name=client.name, services=["DefaultRoute", "SSH", "UserDefined"])
+                            response = core.add_node(session_id, core_client)
+                            client_ids.append(response.node_id)
+                            client.set_id(response.node_id)
+                    
+configure_services(session_id, node_ids, startup_node_service_cmd)
+configure_services(session_id, client_ids, startup_client_service_cmd)
 
 link_configs = []
 
@@ -124,9 +143,15 @@ for router in network.routers:
         # link nodes to switches
         for node_idx,node in enumerate(switch.nodes):
             option = LinkOptions(bandwidth=0, delay=int(node_idx*10e3), dup=0, loss=0, jitter=0,)
-            iface_data = Interface(ip4=node.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
+            iface_data = Interface(id=node_idx, ip4=node.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
             # core.add_link(session_id, node.id, switch.id, iface_data, options=option)
             core.add_link(session_id, node.id, switch.id, iface_data)
+
+            for client_idx,client in enumerate(node.clients):
+                option = LinkOptions(bandwidth=0, delay=int(client_idx*10e3), dup=0, loss=0, jitter=0,)
+                iface_data = Interface(ip4=client.host, ip4_mask=24, ip6="2001::", ip6_mask=64,)
+                # core.add_link(session_id, node.id, switch.id, iface_data, options=option)
+                core.add_link(session_id, client.id, switch.id, iface_data)
 
 # change session state
 core.set_session_state(session_id, SessionState.INSTANTIATION)

@@ -65,16 +65,18 @@ def parser(data):
         external_ip = external_ip_fields[1][1:]
         
         time_graph.create_node(node_origin, external_ip)
-
-        #node = time_graph.get_node(node_origin)
-        #node.insert_event(Event(int(ms), 0, Raft_States[cmd]))
+        
+        if node_origin[0] == 'C':
+            node = time_graph.get_node(node_origin)
+            node.insert_event(Event(int(ms), 0, Raft_States.CLIENT))
 
         if network.get_manufacturer_nodes_len() == time_graph.get_nodes_len():
             nodes = time_graph.get_nodes()
             for node in nodes:
-                set_time(fields[0])
-                pload = {'action':'start'}
-                requests.post('http://' +  node.external_ip + ":8080", data = pload)
+                if node.name[0] != 'C': # don't send to clients
+                    set_time(fields[0])
+                    pload = {'action':'start'}
+                    requests.post('http://' +  node.external_ip + ":8080", data = pload)
                 
     elif cmd == 'KILL' or cmd == 'RESET' or cmd == 'SUSPEND':
         node = time_graph.get_node(node_origin)

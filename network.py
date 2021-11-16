@@ -1,7 +1,6 @@
 from typing import List
 
-
-class ManufacturerNode:
+class Node:
     def __init__(self, name, host, tcp_port, http_port):
         self.name = name
         self.host = host
@@ -21,6 +20,16 @@ class ManufacturerNode:
         ret += 'http_port: ' + str(self.http_port)
         return ret
 
+class ManufacturerNode(Node):
+    def __init__(self, name, host, tcp_port, http_port):
+        super().__init__(name, host, tcp_port, http_port)
+        self.clients : List[ManufacturerNode] = []
+
+class ClientNode(Node):
+    def __init__(self, name, host, tcp_port, http_port, node : ManufacturerNode):
+        super().__init__(name, host, tcp_port, http_port)
+        self.father_node : ManufacturerNode = node
+        
 class SwitchNode:
     def __init__(self, name, host):
         self.name = name
@@ -58,6 +67,12 @@ class Network:
                     router = self.routers[-1]
                     switch = router.switchs[-1]
                     switch.nodes.append(ManufacturerNode(name, host, int(tcp_port), int(http_port)))
+                elif line[0] == 'C':
+                    (name, host, tcp_port, http_port) = line.split(',')
+                    router = self.routers[-1]
+                    switch = router.switchs[-1]
+                    node = switch.nodes[-1]
+                    node.clients.append(ClientNode(name, host, int(tcp_port), int(http_port), node))
 
 
     def get_manufacturer_nodes(self) -> List[ManufacturerNode]:
@@ -68,12 +83,29 @@ class Network:
                     nodes.append(node)
         return nodes
 
+    def get_client_nodes(self) -> List[ClientNode]:
+        clients : List[ClientNode] = []
+        for router in self.routers:
+            for switch in router.switchs:
+                for node in switch.nodes:
+                    for client in node.clients:
+                        clients.append(client)
+        return clients
+
     def get_manufacturer_nodes_len(self):
         nodes = self.get_manufacturer_nodes()
         return len(nodes)
 
     def get_manufacturer_node_info(self, internal_ip, external_ip) -> ManufacturerNode:
         nodes = self.get_manufacturer_nodes()
+        for node in nodes:
+            if node.host == internal_ip:
+                node.external_ip = external_ip
+                return node
+        return None
+
+    def get_client_node_info(self, internal_ip, external_ip) -> ManufacturerNode:
+        nodes = self.get_client_nodes()
         for node in nodes:
             if node.host == internal_ip:
                 node.external_ip = external_ip

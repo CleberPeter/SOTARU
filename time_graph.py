@@ -16,7 +16,7 @@ class Message_Types(Enum):
     keep_alive = 6
 
 class Raft_States(Enum):
-    #INITIALIZED = 0, 'purple'
+    CLIENT = 0, 'purple'
     FOLLOWER = 1, 'navy'
     CANDIDATE = 2, 'green'
     LEADER = 3, 'red'
@@ -191,14 +191,14 @@ class Time_Graph:
     def plot_adjust_limits(self, inf_limit, sup_limit):
         plt.xlim(inf_limit, sup_limit)
 
-    def update_offline_nodes(self):
+    def update_self_events(self):
         for node in self.nodes:
             last_event = node.get_last_event()
-            if last_event and last_event.raft_state == Raft_States.OFFLINE:
+            if last_event and (last_event.raft_state == Raft_States.OFFLINE or last_event.raft_state == Raft_States.CLIENT):
                 node.update_event(last_event, self.last_ms)
 
     def plot(self):
-        self.update_offline_nodes()
+        self.update_self_events()
         self.plot_node_name_legend()
         
         inf_limit = self.last_ms - WINDOW_SIZE
