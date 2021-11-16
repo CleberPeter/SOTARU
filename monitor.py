@@ -116,11 +116,12 @@ def parser(data):
         type = Message_Types.fail_connect
         node_origin = time_graph.get_node(node_origin)
         node_destiny = time_graph.get_node(fields_data[0])
+        data = fields_data[1]
         
-        message = Message(0, node_origin, node_destiny, type, ms, ms+1)
+        message = Message(0, node_origin, node_destiny, type, ms, ms+1, data)
         time_graph.insert_message(message)
 
-    elif cmd == 'SEND' or cmd == 'RECEIVED': # $type;$origin_name;$term;$destiny_name;$prev_index;$prev_term;$data;$data_term
+    elif cmd == 'SEND' or cmd == 'RECEIVED': # #id;$type;$origin_name;$term;$destiny_name;$prev_index;$prev_term;$data;$data_term
         fields_data = fields[3].split(';')
         
         id = int(fields_data[0])
@@ -140,10 +141,14 @@ def parser(data):
             time_graph.insert_message(message)
             messages.pop(msg_index)
         else:
+            data = fields_data[7]
+            if type == Message_Types.append_entries and data == '':
+                type = Message_Types.keep_alive
+
             if cmd == 'SEND':
-                message = Message(id, node_origin, node_destiny, type, ms, -1)
+                message = Message(id, node_origin, node_destiny, type, ms, -1, data)
             elif cmd == 'RECEIVED':
-                message = Message(id, node_origin, node_destiny, type, -1, ms)
+                message = Message(id, node_origin, node_destiny, type, -1, ms, data)
             
             messages.append(message)
     

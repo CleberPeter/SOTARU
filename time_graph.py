@@ -13,6 +13,7 @@ class Message_Types(Enum):
     append_entries = 3
     append_entries_answer = 4
     fail_connect = 5
+    keep_alive = 6
 
 class Raft_States(Enum):
     #INITIALIZED = 0, 'purple'
@@ -69,13 +70,14 @@ class Node:
         self.y_pos = val
 
 class Message:
-    def __init__(self, id, origin : Node, destiny : Node, type : Message_Types, send_time, receive_time):
+    def __init__(self, id, origin : Node, destiny : Node, type : Message_Types, send_time, receive_time, data):
         self.id = id
         self.origin = origin
         self.destiny = destiny
         self.type = type
         self.send_time = send_time
         self.receive_time = receive_time
+        self.data = data
 
 class Time_Graph:
     def __init__(self):
