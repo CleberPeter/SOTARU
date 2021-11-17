@@ -104,6 +104,13 @@ class Network:
                 return node
         return None
 
+    def get_manufacturer_node(self, name) -> ManufacturerNode:
+        nodes = self.get_manufacturer_nodes()
+        for node in nodes:
+            if node.name == name:
+                return node
+        return None
+
     def get_client_node_info(self, internal_ip, external_ip) -> ManufacturerNode:
         nodes = self.get_client_nodes()
         for node in nodes:

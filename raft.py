@@ -25,6 +25,11 @@ class Follower:
         self.info = info
         self.next_index = next_index
 
+class Client:
+    def __init__(self, socket, name):
+        self.socket = socket
+        self.name = name
+
 class Log:
     def __init__(self, data, term, acks=0):
         self.data = data
@@ -81,6 +86,8 @@ class Raft:
         self.suspended = False
         self.requesting_votes = [False]
         self.network = network
+        
+        self.client : Client = None
 
         self.logs : List[Log] = []
         self.followers : List[Follower] = []
@@ -166,7 +173,20 @@ class Raft:
             accept = False
             next_index = len(self.logs)
 
-            if leader_term >= self.current_term or self.voted_for == '':
+            if leader_term == 0: # client message
+                if self.voted_for != '': # have an leader
+                    self.client = Client(socket, leader_name)
+                    if self.i_am_leader():
+                        self.send_append_entries(msg.data)
+                    else:
+                        leader = self.network.get_manufacturer_node(self.voted_for)
+                        msg.sender = self.name
+                        msg.receiver = self.voted_for
+
+                        Thread(target = self.send_to_node, args=(leader, msg, [1])).start()
+                else:
+                    self.send_append_entries_answer(socket, accept, leader_name)
+            elif leader_term >= self.current_term or self.voted_for == '':
                 leader_prev_index = msg.prev_index
                 leader_prev_term = msg.prev_term
 
@@ -211,15 +231,28 @@ class Raft:
                 self.timeout_handle()
 
         elif msg.type == "append_entries_answer":
-            accept = msg.data
-            follower = self.find_follower(msg.sender)
-            leader_next_index = len(self.logs)
+            if self.i_am_leader():
+                accept = msg.data
+                follower = self.find_follower(msg.sender)
+                leader_next_index = len(self.logs)
+                
+                if accept == "True":
+                    if leader_next_index > follower.next_index:
+                        msg_index = follower.next_index
+                        nodes : List[ManufacturerNode] = self.network.get_manufacturer_nodes()
+                        self.logs[msg_index].acks += 1
+                        follower.next_index += 1
 
-            if accept == "True":
-                if leader_next_index > follower.next_index:
-                    follower.next_index += 1
-            elif accept == "False" and follower.next_index > 0:
-                follower.next_index -= 1
+                        if self.logs[msg_index].acks > len(nodes)/2:
+                            if self.client:
+                                self.send_append_entries_answer(self.client.socket, True, self.client.name)
+                                self.client = None
+                                
+                elif accept == "False" and follower.next_index > 0:
+                    follower.next_index -= 1
+            else: # only redirect
+                self.send_append_entries_answer(self.client.socket, True, self.client.name)
+                self.client = None
 
         self.tcp_logger.save('[RAFT_SM] - ' + self.sm)
 

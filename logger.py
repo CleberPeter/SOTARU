@@ -1,7 +1,7 @@
 from helper import Helper
 
 class Logger:
-    def __init__(self, name, enable_console = True):
+    def __init__(self, name, enable_console = False):
         self.name = name
         self.enable_console = enable_console
 
