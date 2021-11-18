@@ -12,13 +12,13 @@ class Client:
         self.node : ClientNode = network.get_client_node_info(internal_ip, external_ip)
         self.tcp_logger = Tcp_Logger(self.node.name)
 
-        start_msg = '[INITIALIZED] - ' + self.node.get_str_info()
-        self.tcp_logger.save(start_msg)
-
         Thread(target = self.process_client, args=()).start()
 
     def process_client(self):
         
+        sleep(2)
+        start_msg = '[INITIALIZED] - ' + self.node.get_str_info()
+        self.tcp_logger.save(start_msg)
         sleep(7)
         try:
             msg = Message('append_entries', self.node.name, 0, self.node.father_node.name, 0, 0, 'aui', 0)

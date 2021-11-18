@@ -15,6 +15,9 @@ class Node:
     def __init__(self, internal_ip, external_ip, network : Network, force_leader = False):
         self.node : ManufacturerNode = network.get_manufacturer_node_info(internal_ip, external_ip)
         self.tcp_logger = Tcp_Logger(self.node.name)
+
+        if self.node.name == 'F7':
+            force_leader = True
             
         self.raft = Raft(self.node.name, network, self.node.tcp_port, self.tcp_logger, force_leader)
         self.http_sever = HttpServer(self.node.http_port, self.on_http_server_receive)
